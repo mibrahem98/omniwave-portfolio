@@ -23,7 +23,7 @@ const THEME_IDS = Object.keys(APP_THEMES) as AppThemeId[];
 
 export default function SettingsScreen() {
   const { preferences, profile, snapshot, updatePreference, updateEqBand, resetAudioPreferences } = usePlayer();
-  const { theme, themeId, setThemeId, colorScheme, setColorScheme, locale, setLocale, isRTL, t } = useThemeContext();
+  const { theme, themeId, setThemeId, colorScheme, setColorScheme, locale, setLocale, resetOnboarding, isRTL, t } = useThemeContext();
   const align = isRTL ? "right" : "left";
   const direction = isRTL ? "row-reverse" : "row";
   const selectedThemeName = TRANSLATIONS[locale].themeNames[themeId];
@@ -86,6 +86,7 @@ export default function SettingsScreen() {
               <View style={[styles.rowHeader, { flexDirection: direction }]}><View style={[styles.settingIcon, { backgroundColor: `${theme.colors.secondary}18` }]}><MaterialIcons name="dark-mode" size={20} color={theme.colors.secondary} /></View><View style={styles.settingCopy}><Text style={[styles.settingTitle, { color: theme.colors.text, textAlign: align }]}>{t("darkMode")}</Text><Text style={[styles.settingSubtitle, { color: theme.colors.muted, textAlign: align }]}>{t("darkModeHint")}</Text></View></View>
               <Switch accessibilityRole="switch" accessibilityLabel={t("darkMode")} accessibilityHint={t("darkModeHint")} accessibilityState={{ checked: colorScheme === "dark" }} value={colorScheme === "dark"} onValueChange={(enabled) => setColorScheme(enabled ? "dark" : "light")} trackColor={{ false: theme.colors.border, true: `${theme.colors.primary}88` }} thumbColor={colorScheme === "dark" ? theme.colors.primary : theme.colors.text} />
             </View>
+            <Pressable accessibilityRole="button" accessibilityLabel={t("onboardingReplay")} accessibilityHint={t("onboardingReplayHint")} onPress={resetOnboarding} style={({ pressed }) => [styles.sessionRoute, { backgroundColor: theme.colors.surfaceMuted, borderColor: theme.colors.border, flexDirection: direction, marginBottom: 8 }, pressed && styles.pressed]}><View style={[styles.routeIcon, { backgroundColor: `${theme.colors.primary}18` }]}><MaterialIcons name="auto-stories" size={21} color={theme.colors.primary} /></View><View style={styles.routeCopy}><Text style={[styles.routeTitle, { color: theme.colors.text, textAlign: align }]}>{t("onboardingReplay")}</Text><Text style={[styles.routeText, { color: theme.colors.muted, textAlign: align }]}>{t("onboardingReplayHint")}</Text></View><MaterialIcons name={isRTL ? "chevron-left" : "chevron-right"} size={23} color={theme.colors.muted} /></Pressable>
 
             <View style={[styles.pickerCard, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border }]}>
               <View style={[styles.pickerTitleRow, { flexDirection: direction }]}>
