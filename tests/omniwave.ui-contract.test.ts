@@ -39,6 +39,8 @@ describe("OmniWave navigation and settings contract", () => {
     expect(settings).toContain("setLocale");
     expect(settings).toContain('t("darkMode")');
     expect(settings).toContain('colorScheme === "dark"');
+    expect(settings).toContain("resetOnboarding");
+    expect(settings).toContain('t("onboardingReplay")');
     expect(settings).toContain('accessibilityRole="radio"');
     expect(settings).toContain('accessibilityRole="switch"');
   });
@@ -80,5 +82,19 @@ describe("OmniWave navigation and settings contract", () => {
     expect(library).toContain("CollectionSkeleton variant=\"library\"");
     expect(playlists).toContain("CollectionSkeleton variant=\"playlists\"");
     expect(read("components/omniwave/content-skeleton.tsx")).toContain("isReduceMotionEnabled");
+  });
+
+  it("keeps scoped local search and replayable onboarding available", () => {
+    const library = read("app/(tabs)/library.tsx");
+    const themeProvider = read("lib/theme-provider.tsx");
+    const onboarding = read("components/omniwave/onboarding-coach.tsx");
+    expect(library).toContain("SEARCH_SCOPES");
+    expect(library).toContain("searchScope");
+    expect(library).toContain("clearDiscovery");
+    expect(library).toContain('t("searchIn")');
+    expect(themeProvider).toContain("completeOnboarding");
+    expect(themeProvider).toContain("resetOnboarding");
+    expect(onboarding).toContain("onboardingExportTitle");
+    expect(onboarding).toContain("accessibilityViewIsModal");
   });
 });
