@@ -1,5 +1,7 @@
 # OmniWave
 
+[![Quality](https://github.com/mibrahem98/omniwave-portfolio/actions/workflows/quality.yml/badge.svg?branch=main)](https://github.com/mibrahem98/omniwave-portfolio/actions/workflows/quality.yml)
+
 > A privacy-first local music player for mobile, crafted with Expo and React Native.
 
 ![OmniWave home screen](docs/assets/omniwave-home.png)
