@@ -8,6 +8,7 @@ import "react-native-reanimated";
 import { Platform } from "react-native";
 import "@/lib/_core/nativewind-pressable";
 import { ThemeProvider } from "@/lib/theme-provider";
+import { OnboardingCoach } from "@/components/omniwave/onboarding-coach";
 import {
   SafeAreaFrameContext,
   SafeAreaInsetsContext,
@@ -89,6 +90,7 @@ export default function RootLayout() {
             <Stack.Screen name="(tabs)" />
             <Stack.Screen name="oauth/callback" />
           </Stack>
+          <OnboardingCoach />
           <StatusBar style="auto" />
         </QueryClientProvider>
       </trpc.Provider>
