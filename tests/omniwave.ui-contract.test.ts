@@ -91,10 +91,17 @@ describe("OmniWave navigation and settings contract", () => {
     expect(library).toContain("SEARCH_SCOPES");
     expect(library).toContain("searchScope");
     expect(library).toContain("clearDiscovery");
+    expect(library).toContain("LIBRARY_DISCOVERY_KEY");
+    expect(library).toContain("AsyncStorage.getItem");
+    expect(library).toContain("AsyncStorage.setItem");
     expect(library).toContain('t("searchIn")');
     expect(themeProvider).toContain("completeOnboarding");
     expect(themeProvider).toContain("resetOnboarding");
     expect(onboarding).toContain("onboardingExportTitle");
     expect(onboarding).toContain("accessibilityViewIsModal");
+    expect(onboarding).toContain("AccessibilityInfo.isReduceMotionEnabled");
+    expect(onboarding).toContain("Animated.parallel");
+    expect(read("CONTRIBUTING.md")).toContain("pnpm check");
+    expect(read("CONTRIBUTING.md")).toContain("reduced-motion");
   });
 });
