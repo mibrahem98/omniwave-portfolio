@@ -1,0 +1,38 @@
+name: Feature request
+description: Suggest a privacy-respecting improvement for OmniWave.
+title: "feature: "
+labels: ["enhancement", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: "Describe the listener outcome. OmniWave is local-first: do not request accounts, cloud sync, advertising, or external analytics unless that scope is explicitly reconsidered."
+  - type: textarea
+    id: outcome
+    attributes:
+      label: Listener outcome
+      description: What should become easier or clearer for the listener?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed experience
+      description: Explain the screen, interaction, and accessible fallback.
+    validations:
+      required: true
+  - type: textarea
+    id: privacy
+    attributes:
+      label: Privacy and local-data impact
+      description: State what data is used, where it stays, and whether anything leaves the device.
+    validations:
+      required: true
+  - type: checkboxes
+    id: constraints
+    attributes:
+      label: Product constraints
+      options:
+        - label: This proposal works without a user account or cloud sync.
+          required: true
+        - label: This proposal remains usable with RTL and reduced motion.
+          required: true
