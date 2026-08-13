@@ -1,5 +1,6 @@
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
-import { useMemo, useState } from "react";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useEffect, useMemo, useState } from "react";
 import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 
 import { CollectionSkeleton } from "@/components/omniwave/content-skeleton";
@@ -17,6 +18,12 @@ const SEARCH_SCOPES = ["all", "title", "artist", "album", "details"] as const;
 type LibraryFilter = (typeof FILTERS)[number];
 type LibrarySort = (typeof SORTS)[number];
 type SearchScope = (typeof SEARCH_SCOPES)[number];
+type StoredLibraryDiscovery = { searchScope?: unknown; activeFilters?: unknown; sort?: unknown };
+
+const LIBRARY_DISCOVERY_KEY = "omniwave:library-discovery:v1";
+const isLibraryFilter = (value: unknown): value is LibraryFilter => typeof value === "string" && FILTERS.includes(value as LibraryFilter);
+const isLibrarySort = (value: unknown): value is LibrarySort => typeof value === "string" && SORTS.includes(value as LibrarySort);
+const isSearchScope = (value: unknown): value is SearchScope => typeof value === "string" && SEARCH_SCOPES.includes(value as SearchScope);
 
 function normalize(value: string) { return value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLocaleLowerCase(); }
 function compareText(left: string, right: string) { return left.localeCompare(right, undefined, { sensitivity: "base" }); }
@@ -33,6 +40,27 @@ export default function LibraryScreen() {
   const [searchScope, setSearchScope] = useState<SearchScope>("all");
   const [activeFilters, setActiveFilters] = useState<LibraryFilter[]>([]);
   const [sort, setSort] = useState<LibrarySort>("recent");
+  const [discoveryReady, setDiscoveryReady] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+    void AsyncStorage.getItem(LIBRARY_DISCOVERY_KEY).then((raw) => {
+      if (!active || !raw) return;
+      try {
+        const stored = JSON.parse(raw) as StoredLibraryDiscovery;
+        if (isSearchScope(stored.searchScope)) setSearchScope(stored.searchScope);
+        if (isLibrarySort(stored.sort)) setSort(stored.sort);
+        if (Array.isArray(stored.activeFilters)) setActiveFilters([...new Set(stored.activeFilters.filter(isLibraryFilter))]);
+      } catch { /* Ignore malformed local discovery preferences safely. */ }
+    }).finally(() => { if (active) setDiscoveryReady(true); });
+    return () => { active = false; };
+  }, []);
+
+  useEffect(() => {
+    if (!discoveryReady) return;
+    const stored: StoredLibraryDiscovery = { searchScope, activeFilters, sort };
+    void AsyncStorage.setItem(LIBRARY_DISCOVERY_KEY, JSON.stringify(stored)).catch(() => undefined);
+  }, [activeFilters, discoveryReady, searchScope, sort]);
   const favoriteTracks = useMemo(() => tracks.filter((track) => track.isFavorite).slice(0, 6), [tracks]);
   const recentTracks = useMemo(() => historyIds.map((id) => tracks.find((track) => track.id === id)).filter((track): track is Track => Boolean(track)).slice(0, 6), [historyIds, tracks]);
   const quickTracks = favoriteTracks.length ? favoriteTracks : recentTracks;
@@ -61,7 +89,7 @@ export default function LibraryScreen() {
   const searchScopeLabels: Record<SearchScope, string> = { all: t("searchAll"), title: t("searchTitle"), artist: t("searchArtist"), album: t("searchAlbum"), details: t("searchDetails") };
   const activeSearchCount = activeFilters.length + (searchScope === "all" ? 0 : 1) + (query.trim() ? 1 : 0);
   const toggleFilter = (filter: LibraryFilter) => setActiveFilters((previous) => previous.includes(filter) ? previous.filter((item) => item !== filter) : [...previous, filter]);
-  const clearDiscovery = () => { setQuery(""); setSearchScope("all"); setActiveFilters([]); };
+  const clearDiscovery = () => { setQuery(""); setSearchScope("all"); setActiveFilters([]); setSort("recent"); void AsyncStorage.removeItem(LIBRARY_DISCOVERY_KEY).catch(() => undefined); };
 
   if (!isReady) return <ScreenContainer className="px-5"><CollectionSkeleton variant="library" /></ScreenContainer>;
 
