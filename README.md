@@ -97,6 +97,10 @@ pnpm lint
 
 GitHub Actions runs `pnpm check` and `pnpm lint` on every push to `main`, pull request targeting `main`, and manual workflow dispatch. The workflow has read-only repository permissions and requires no secrets.
 
+## Contributing
+
+Read [CONTRIBUTING.md](CONTRIBUTING.md) before opening an issue or pull request. It covers local setup, quality gates, privacy boundaries, RTL and reduced-motion expectations, and the native-device validation boundary.
+
 ## Native validation note
 
 The browser preview is useful for layout and copy review. Audio output routing, background playback, lock-screen controls, system sharing, and date-picker behavior should also be verified on iOS and Android devices or native builds.
