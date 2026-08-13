@@ -6,6 +6,32 @@
 
 OmniWave is a portrait-first music-player experience designed around **local ownership, focused listening, and calm visual hierarchy**. The application keeps a listener’s library, history, playlists, and interface preferences on-device—without accounts, cloud sync, ads, or external analytics.
 
+## Product tour
+
+![OmniWave flow: local library, history export, and appearance settings](docs/assets/omniwave-flow.gif)
+
+This short, silent loop follows a real in-app route from library browsing to export configuration and appearance settings. It uses portfolio sample content only and communicates interface flow, not native playback or system-share behavior.
+
+## Screen gallery
+
+### Local library
+
+![OmniWave local library with filters, sorting, and import action](docs/assets/library-view.png)
+
+The library combines local import, filter chips, sorting controls, favorites, and queue actions in an RTL-aware mobile layout.
+
+### Listening-history export
+
+![OmniWave listening-history export with quick time ranges and field selection](docs/assets/export-history-view.png)
+
+The export flow exposes quick date ranges, a content preview, field selection, format choice, and an estimated local file size before the system share sheet is opened.
+
+### Appearance settings
+
+![OmniWave settings with language choices, Aurora dark mode, and theme controls](docs/assets/settings-view.png)
+
+The settings experience combines four localized languages, an explicit Aurora dark-mode switch, five saved themes, and accessible switches for listening preferences.
+
 ## Portfolio highlights
 
 | Area | What is demonstrated |
@@ -16,7 +42,7 @@ OmniWave is a portrait-first music-player experience designed around **local own
 | **International UX** | Arabic, English, French, and Spanish, including complete RTL behavior for Arabic. |
 | **Personalization** | Five locally saved themes, an explicit Aurora dark-mode switch, audio preferences, equalizer controls, and customizable favorite-share cards. |
 | **Privacy-aware sharing** | Previewable TXT/CSV listening-history export and favorite-card sharing that intentionally exclude local audio URIs and file paths. |
-| **Reliable delivery** | TypeScript, Vitest contract tests, Expo linting, validation of restored local preferences, and explicit native-device test boundaries. |
+| **Reliable delivery** | TypeScript, Vitest contract tests, Expo linting, GitHub Actions static-quality checks, validation of restored local preferences, and explicit native-device test boundaries. |
 
 ## Product flows
 
@@ -64,6 +90,10 @@ pnpm check
 pnpm test
 pnpm lint
 ```
+
+## Continuous quality
+
+GitHub Actions runs `pnpm check` and `pnpm lint` on every push to `main`, pull request targeting `main`, and manual workflow dispatch. The workflow has read-only repository permissions and requires no secrets.
 
 ## Native validation note
 
