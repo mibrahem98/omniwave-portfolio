@@ -1,6 +1,6 @@
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
-import { useState } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { useEffect, useRef, useState } from "react";
+import { AccessibilityInfo, Animated, Easing, Pressable, StyleSheet, Text, View } from "react-native";
 
 import { useThemeContext } from "@/lib/theme-provider";
 
@@ -11,8 +11,28 @@ const STEP_DETAILS = ["onboardingLibraryDetail", "onboardingExportDetail", "onbo
 export function OnboardingCoach() {
   const { completeOnboarding, isRTL, onboardingSeen, preferencesReady, t, theme } = useThemeContext();
   const [step, setStep] = useState(0);
+  const [reduceMotion, setReduceMotion] = useState(false);
+  const contentOpacity = useRef(new Animated.Value(1)).current;
+  const translateX = useRef(new Animated.Value(0)).current;
   const direction = isRTL ? "row-reverse" : "row";
   const isLast = step === STEP_TITLES.length - 1;
+
+  useEffect(() => {
+    let active = true;
+    void AccessibilityInfo.isReduceMotionEnabled().then((value) => { if (active) setReduceMotion(value); });
+    const subscription = AccessibilityInfo.addEventListener("reduceMotionChanged", setReduceMotion);
+    return () => { active = false; subscription.remove(); };
+  }, []);
+
+  useEffect(() => {
+    if (reduceMotion) { contentOpacity.setValue(1); translateX.setValue(0); return; }
+    contentOpacity.setValue(0);
+    translateX.setValue(isRTL ? -14 : 14);
+    Animated.parallel([
+      Animated.timing(contentOpacity, { toValue: 1, duration: 180, easing: Easing.out(Easing.cubic), useNativeDriver: true }),
+      Animated.timing(translateX, { toValue: 0, duration: 220, easing: Easing.out(Easing.cubic), useNativeDriver: true }),
+    ]).start();
+  }, [contentOpacity, isRTL, reduceMotion, step, translateX]);
 
   if (!preferencesReady || onboardingSeen) return null;
 
@@ -31,12 +51,14 @@ export function OnboardingCoach() {
             <Text style={[styles.skipText, { color: theme.colors.muted }]}>{t("onboardingSkip")}</Text>
           </Pressable>
         </View>
-        <View style={[styles.icon, { backgroundColor: `${theme.colors.primary}1C` }]}>
-          <MaterialIcons name={STEP_ICONS[step]} size={28} color={theme.colors.primary} />
-        </View>
-        <Text style={[styles.title, { color: theme.colors.text, textAlign: isRTL ? "right" : "left" }]}>{t(STEP_TITLES[step])}</Text>
-        <Text style={[styles.detail, { color: theme.colors.muted, textAlign: isRTL ? "right" : "left" }]}>{t(STEP_DETAILS[step])}</Text>
-        <View style={[styles.dots, { flexDirection: direction }]}>{STEP_TITLES.map((_, index) => <View key={index} style={[styles.dot, { backgroundColor: index === step ? theme.colors.primary : theme.colors.border }]} />)}</View>
+        <Animated.View style={{ opacity: contentOpacity, transform: [{ translateX }] }}>
+          <View style={[styles.icon, { backgroundColor: `${theme.colors.primary}1C` }]}>
+            <MaterialIcons name={STEP_ICONS[step]} size={28} color={theme.colors.primary} />
+          </View>
+          <Text style={[styles.title, { color: theme.colors.text, textAlign: isRTL ? "right" : "left" }]}>{t(STEP_TITLES[step])}</Text>
+          <Text style={[styles.detail, { color: theme.colors.muted, textAlign: isRTL ? "right" : "left" }]}>{t(STEP_DETAILS[step])}</Text>
+          <View style={[styles.dots, { flexDirection: direction }]}>{STEP_TITLES.map((_, index) => <View key={index} style={[styles.dot, { backgroundColor: index === step ? theme.colors.primary : theme.colors.border }]} />)}</View>
+        </Animated.View>
         <Pressable accessibilityRole="button" accessibilityLabel={isLast ? t("onboardingDone") : t("onboardingNext")} onPress={advance} style={({ pressed }) => [styles.next, { backgroundColor: theme.colors.primary, flexDirection: direction }, pressed && styles.pressed]}>
           <Text style={[styles.nextText, { color: theme.colors.onPrimary }]}>{isLast ? t("onboardingDone") : t("onboardingNext")}</Text>
           <MaterialIcons name={isLast ? "check" : (isRTL ? "arrow-back" : "arrow-forward")} size={18} color={theme.colors.onPrimary} />
