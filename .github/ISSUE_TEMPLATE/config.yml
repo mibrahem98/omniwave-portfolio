@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Privacy and contribution boundaries
+    url: https://github.com/mibrahem98/omniwave-portfolio#privacy-and-security-boundaries
+    about: Review OmniWave local-first and privacy expectations before opening an issue.
