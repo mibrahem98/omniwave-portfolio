@@ -21,7 +21,7 @@ export const APP_THEMES: Record<AppThemeId, AppTheme> = {
 
 const PREFERENCES_KEY = "omniwave:ui-preferences:v2";
 const DEFAULT_FAVORITE_CARD_PREFERENCES: FavoriteCardPreferences = { style: "glass", color: "teal" };
-type StoredPreferences = { locale?: unknown; themeId?: unknown; favoriteCard?: unknown };
+type StoredPreferences = { locale?: unknown; themeId?: unknown; favoriteCard?: unknown; onboardingSeen?: unknown };
 type ThemeContextValue = {
   theme: AppTheme;
   themeId: AppThemeId;
@@ -33,6 +33,10 @@ type ThemeContextValue = {
   favoriteCardPreferences: FavoriteCardPreferences;
   setFavoriteCardPreferences: (preferences: FavoriteCardPreferences) => void;
   resetFavoriteCardPreferences: () => void;
+  onboardingSeen: boolean;
+  preferencesReady: boolean;
+  completeOnboarding: () => void;
+  resetOnboarding: () => void;
   isRTL: boolean;
   direction: "rtl" | "ltr";
   t: (key: TranslationKey) => string;
@@ -49,6 +53,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [locale, setLocaleState] = useState<AppLocale>("ar");
   const [favoriteCardPreferences, setFavoriteCardPreferencesState] = useState<FavoriteCardPreferences>(DEFAULT_FAVORITE_CARD_PREFERENCES);
   const [isFavoriteCardCustomized, setIsFavoriteCardCustomized] = useState(false);
+  const [onboardingSeen, setOnboardingSeen] = useState(false);
   const [ready, setReady] = useState(false);
   const theme = APP_THEMES[themeId];
   const colorScheme: ColorScheme = theme.isDark ? "dark" : "light";
@@ -65,6 +70,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
         const restoredCard = sanitizeFavoriteCardPreferences(stored.favoriteCard);
         setFavoriteCardPreferencesState(restoredCard);
         setIsFavoriteCardCustomized(isFavoriteCardStyle((stored.favoriteCard as Record<string, unknown> | undefined)?.style) && isFavoriteCardColor((stored.favoriteCard as Record<string, unknown> | undefined)?.color));
+        setOnboardingSeen(typeof stored.onboardingSeen === "boolean" ? stored.onboardingSeen : true);
       } catch { /* Ignore malformed local preferences safely. */ }
     }).finally(() => { if (active) setReady(true); });
     return () => { active = false; };
@@ -83,21 +89,23 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (!ready) return;
-    const saved = isFavoriteCardCustomized ? { locale, themeId, favoriteCard: favoriteCardPreferences } : { locale, themeId };
+    const saved = { locale, themeId, ...(isFavoriteCardCustomized ? { favoriteCard: favoriteCardPreferences } : {}), ...(onboardingSeen ? { onboardingSeen: true } : {}) };
     void AsyncStorage.setItem(PREFERENCES_KEY, JSON.stringify(saved)).catch(() => undefined);
-  }, [favoriteCardPreferences, isFavoriteCardCustomized, locale, ready, themeId]);
+  }, [favoriteCardPreferences, isFavoriteCardCustomized, locale, onboardingSeen, ready, themeId]);
 
   const setThemeId = useCallback((nextThemeId: AppThemeId) => { if (isThemeId(nextThemeId)) setThemeIdState(nextThemeId); }, []);
   const setColorScheme = useCallback((scheme: ColorScheme) => setThemeIdState(scheme === "light" ? "pearl" : "aurora"), []);
   const setLocale = useCallback((nextLocale: AppLocale) => { if (isAppLocale(nextLocale)) setLocaleState(nextLocale); }, []);
   const setFavoriteCardPreferences = useCallback((nextPreferences: FavoriteCardPreferences) => { setFavoriteCardPreferencesState(sanitizeFavoriteCardPreferences(nextPreferences)); setIsFavoriteCardCustomized(true); }, []);
   const resetFavoriteCardPreferences = useCallback(() => { setFavoriteCardPreferencesState(DEFAULT_FAVORITE_CARD_PREFERENCES); setIsFavoriteCardCustomized(false); }, []);
+  const completeOnboarding = useCallback(() => setOnboardingSeen(true), []);
+  const resetOnboarding = useCallback(() => setOnboardingSeen(false), []);
   const t = useCallback((key: TranslationKey) => TRANSLATIONS[locale][key] as string, [locale]);
 
   const themeVariables = useMemo(() => vars({
     "color-primary": theme.colors.primary, "color-background": theme.colors.background, "color-surface": theme.colors.surface, "color-foreground": theme.colors.text, "color-muted": theme.colors.muted, "color-border": theme.colors.border, "color-success": theme.colors.primary, "color-warning": theme.colors.secondary, "color-error": theme.colors.accent,
   }), [theme]);
-  const value = useMemo(() => ({ theme, themeId, setThemeId, colorScheme, setColorScheme, locale, setLocale, favoriteCardPreferences, setFavoriteCardPreferences, resetFavoriteCardPreferences, isRTL: direction === "rtl", direction, t }), [colorScheme, direction, favoriteCardPreferences, locale, resetFavoriteCardPreferences, setColorScheme, setFavoriteCardPreferences, setLocale, setThemeId, t, theme, themeId]);
+  const value = useMemo(() => ({ theme, themeId, setThemeId, colorScheme, setColorScheme, locale, setLocale, favoriteCardPreferences, setFavoriteCardPreferences, resetFavoriteCardPreferences, onboardingSeen, preferencesReady: ready, completeOnboarding, resetOnboarding, isRTL: direction === "rtl", direction, t }), [colorScheme, completeOnboarding, direction, favoriteCardPreferences, locale, onboardingSeen, ready, resetFavoriteCardPreferences, resetOnboarding, setColorScheme, setFavoriteCardPreferences, setLocale, setThemeId, t, theme, themeId]);
 
   return <ThemeContext.Provider value={value}><View style={[{ flex: 1, backgroundColor: theme.colors.background }, themeVariables]}>{children}</View></ThemeContext.Provider>;
 }
