@@ -260,6 +260,32 @@ describe("OmniWave navigation and settings contract", () => {
     }
   });
 
+  it("keeps line spacing, optional local reading font, and library preview within accessibility preferences", () => {
+    const themeProvider = read("lib/theme-provider.tsx");
+    const settings = read("app/(tabs)/settings.tsx");
+    const trackRow = read("components/omniwave/track-row.tsx");
+    const playerPreview = read("components/omniwave/accessibility-player-preview.tsx");
+    const libraryPreview = read("components/omniwave/accessibility-library-preview.tsx");
+    const appConfig = read("app.config.ts");
+    const localization = read("lib/localization.ts");
+    expect(themeProvider).toContain("LineSpacingPreference");
+    expect(themeProvider).toContain("ReadingFontPreference");
+    expect(themeProvider).toContain("LINE_HEIGHT_MULTIPLIERS");
+    expect(themeProvider).toContain("OpenDyslexic-Regular");
+    expect(settings).toContain("LINE_SPACINGS");
+    expect(settings).toContain("READING_FONTS");
+    expect(settings).toContain("AccessibilityLibraryPreview");
+    expect(trackRow).toContain("lineHeightMultiplier");
+    expect(trackRow).toContain("readingFontFamily");
+    expect(playerPreview).toContain("lineHeightMultiplier");
+    expect(libraryPreview).toContain("music-note");
+    expect(appConfig).toContain("expo-font");
+    expect(appConfig).toContain("OpenDyslexic-Regular.ttf");
+    for (const key of ["lineSpacing", "lineSpacingHint", "lineSpacingStandard", "lineSpacingRelaxed", "lineSpacingSpacious", "readingFont", "readingFontHint", "readingFontSystem", "readingFontDyslexia", "libraryPreview"]) {
+      expect(localization).toContain(key);
+    }
+  });
+
   it("keeps respectful community standards connected to the public contribution path", () => {
     const codeOfConduct = read("CODE_OF_CONDUCT.md");
     const readme = read("README.md");
