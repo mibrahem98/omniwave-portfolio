@@ -20,11 +20,11 @@ function TabChrome() {
           tabBarButton: HapticTab,
           tabBarActiveTintColor: theme.colors.primary,
           tabBarInactiveTintColor: theme.colors.muted,
-          tabBarStyle: { height: 72 + bottomPadding, paddingTop: 7, paddingBottom: bottomPadding, backgroundColor: theme.colors.surface, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: `${theme.colors.border}D9`, elevation: 0, shadowColor: "#000", shadowOpacity: 0.21, shadowRadius: 22, shadowOffset: { width: 0, height: -7 } },
+          tabBarStyle: { height: 72 + bottomPadding, paddingTop: 7, paddingBottom: bottomPadding, backgroundColor: theme.colors.surface, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: `${theme.colors.border}D9`, elevation: theme.isDark ? 0 : 4, shadowColor: theme.isDark ? "#000" : theme.colors.primary, shadowOpacity: theme.isDark ? 0.21 : 0.08, shadowRadius: 22, shadowOffset: { width: 0, height: -7 } },
           tabBarLabelStyle: { fontSize: 10, fontWeight: "900", marginTop: 3, letterSpacing: 0.15 },
           tabBarItemStyle: { minHeight: 51, borderRadius: 17, marginHorizontal: 2, marginVertical: 1 },
           tabBarIconStyle: { marginTop: 1 },
-          tabBarActiveBackgroundColor: `${theme.colors.primary}20`,
+          tabBarActiveBackgroundColor: `${theme.colors.primary}${theme.isDark ? "20" : "16"}`,
           tabBarHideOnKeyboard: true,
         }}
       >
