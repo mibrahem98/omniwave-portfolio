@@ -32,7 +32,7 @@ The export flow exposes quick date ranges, a content preview, field selection, f
 
 ![OmniWave settings with language choices, Aurora dark mode, and theme controls](docs/assets/settings-view.png)
 
-The settings experience combines four localized languages, eight saved themes with concise palette guidance, an explicit Aurora dark-mode switch, optional system-appearance matching, a local high-contrast layer with preview and saved highlight color, comfortable or compact reading density, and standard, large, or extra-large in-app text with a local font-weight choice. A compact full-player preview makes the reading and contrast effect visible before it is adopted, while native haptics accompany meaningful accessibility changes.
+The settings experience combines four localized languages, eight saved themes with concise palette guidance, an explicit Aurora dark-mode switch, optional system-appearance matching, a local high-contrast layer with preview and saved highlight color, comfortable or compact reading density, and standard, large, or extra-large in-app text with local font-weight and line-spacing choices. An optional bundled [OpenDyslexic](https://opendyslexic.org/) reading font and compact full-player and library previews make the effect visible before it is adopted, while native haptics accompany meaningful accessibility changes.
 
 ## Portfolio highlights
 
