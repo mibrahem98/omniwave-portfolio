@@ -12,8 +12,11 @@ export type InterfaceDensity = "comfortable" | "compact";
 export type TextScale = "standard" | "large" | "extraLarge";
 export type HighContrastAccent = "teal" | "violet" | "amber";
 export type FontWeightPreference = "regular" | "medium" | "bold";
+export type LineSpacingPreference = "standard" | "relaxed" | "spacious";
+export type ReadingFontPreference = "system" | "dyslexia";
 export const TEXT_SCALE_MULTIPLIERS: Record<TextScale, number> = { standard: 1, large: 1.15, extraLarge: 1.3 };
 export const FONT_WEIGHT_VALUES: Record<FontWeightPreference, "400" | "600" | "700"> = { regular: "400", medium: "600", bold: "700" };
+export const LINE_HEIGHT_MULTIPLIERS: Record<LineSpacingPreference, number> = { standard: 1, relaxed: 1.25, spacious: 1.45 };
 export type AppThemeColors = { background: string; surface: string; surfaceMuted: string; text: string; muted: string; border: string; primary: string; secondary: string; accent: string; glow: string; onPrimary: string };
 export type AppTheme = { id: AppThemeId; isDark: boolean; colors: AppThemeColors };
 
@@ -30,7 +33,7 @@ export const APP_THEMES: Record<AppThemeId, AppTheme> = {
 
 const PREFERENCES_KEY = "omniwave:ui-preferences:v2";
 const DEFAULT_FAVORITE_CARD_PREFERENCES: FavoriteCardPreferences = { style: "glass", color: "teal" };
-type StoredPreferences = { locale?: unknown; themeId?: unknown; favoriteCard?: unknown; onboardingSeen?: unknown; interfaceDensity?: unknown; followSystemAppearance?: unknown; textScale?: unknown; fontWeight?: unknown; highContrast?: unknown; highContrastAccent?: unknown };
+type StoredPreferences = { locale?: unknown; themeId?: unknown; favoriteCard?: unknown; onboardingSeen?: unknown; interfaceDensity?: unknown; followSystemAppearance?: unknown; textScale?: unknown; fontWeight?: unknown; lineSpacing?: unknown; readingFont?: unknown; highContrast?: unknown; highContrastAccent?: unknown };
 type ThemeContextValue = {
   theme: AppTheme;
   themeId: AppThemeId;
@@ -43,6 +46,12 @@ type ThemeContextValue = {
   fontWeightPreference: FontWeightPreference;
   fontWeightValue: "400" | "600" | "700";
   setFontWeightPreference: (weight: FontWeightPreference) => void;
+  lineSpacing: LineSpacingPreference;
+  lineHeightMultiplier: number;
+  setLineSpacing: (spacing: LineSpacingPreference) => void;
+  readingFont: ReadingFontPreference;
+  readingFontFamily?: "OpenDyslexic-Regular";
+  setReadingFont: (font: ReadingFontPreference) => void;
   resetAccessibilityPreferences: () => void;
   highContrast: boolean;
   setHighContrast: (enabled: boolean) => void;
@@ -72,6 +81,8 @@ const isThemeId = (value: unknown): value is AppThemeId => typeof value === "str
 const isInterfaceDensity = (value: unknown): value is InterfaceDensity => value === "comfortable" || value === "compact";
 const isTextScale = (value: unknown): value is TextScale => value === "standard" || value === "large" || value === "extraLarge";
 const isFontWeightPreference = (value: unknown): value is FontWeightPreference => value === "regular" || value === "medium" || value === "bold";
+const isLineSpacingPreference = (value: unknown): value is LineSpacingPreference => value === "standard" || value === "relaxed" || value === "spacious";
+const isReadingFontPreference = (value: unknown): value is ReadingFontPreference => value === "system" || value === "dyslexia";
 const isHighContrastAccent = (value: unknown): value is HighContrastAccent => value === "teal" || value === "violet" || value === "amber";
 const getSystemColorScheme = (): ColorScheme => Appearance.getColorScheme() === "dark" ? "dark" : "light";
 const getSystemThemeId = (): AppThemeId => getSystemColorScheme() === "dark" ? "aurora" : "pearl";
@@ -86,6 +97,8 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [interfaceDensity, setInterfaceDensityState] = useState<InterfaceDensity>("comfortable");
   const [textScale, setTextScaleState] = useState<TextScale>("standard");
   const [fontWeightPreference, setFontWeightPreferenceState] = useState<FontWeightPreference>("regular");
+  const [lineSpacing, setLineSpacingState] = useState<LineSpacingPreference>("standard");
+  const [readingFont, setReadingFontState] = useState<ReadingFontPreference>("system");
   const [highContrast, setHighContrastState] = useState(false);
   const [highContrastAccent, setHighContrastAccentState] = useState<HighContrastAccent>("teal");
   const [followSystemAppearance, setFollowSystemAppearanceState] = useState(true);
@@ -112,6 +125,8 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
         if (isInterfaceDensity(stored.interfaceDensity)) setInterfaceDensityState(stored.interfaceDensity);
         if (isTextScale(stored.textScale)) setTextScaleState(stored.textScale);
         if (isFontWeightPreference(stored.fontWeight)) setFontWeightPreferenceState(stored.fontWeight);
+        if (isLineSpacingPreference(stored.lineSpacing)) setLineSpacingState(stored.lineSpacing);
+        if (isReadingFontPreference(stored.readingFont)) setReadingFontState(stored.readingFont);
         if (typeof stored.highContrast === "boolean") setHighContrastState(stored.highContrast);
         if (isHighContrastAccent(stored.highContrastAccent)) setHighContrastAccentState(stored.highContrastAccent);
         if (isAppLocale(stored.locale)) setLocaleState(stored.locale);
@@ -144,15 +159,17 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (!ready) return;
-    const saved = { locale, themeId, interfaceDensity, textScale, fontWeight: fontWeightPreference, highContrast, highContrastAccent, followSystemAppearance, ...(isFavoriteCardCustomized ? { favoriteCard: favoriteCardPreferences } : {}), ...(onboardingSeen ? { onboardingSeen: true } : {}) };
+    const saved = { locale, themeId, interfaceDensity, textScale, fontWeight: fontWeightPreference, lineSpacing, readingFont, highContrast, highContrastAccent, followSystemAppearance, ...(isFavoriteCardCustomized ? { favoriteCard: favoriteCardPreferences } : {}), ...(onboardingSeen ? { onboardingSeen: true } : {}) };
     void AsyncStorage.setItem(PREFERENCES_KEY, JSON.stringify(saved)).catch(() => undefined);
-  }, [favoriteCardPreferences, followSystemAppearance, fontWeightPreference, highContrast, highContrastAccent, interfaceDensity, isFavoriteCardCustomized, locale, onboardingSeen, ready, textScale, themeId]);
+  }, [favoriteCardPreferences, followSystemAppearance, fontWeightPreference, highContrast, highContrastAccent, interfaceDensity, isFavoriteCardCustomized, lineSpacing, locale, onboardingSeen, readingFont, ready, textScale, themeId]);
 
   const setThemeId = useCallback((nextThemeId: AppThemeId) => { if (isThemeId(nextThemeId)) { setFollowSystemAppearanceState(false); setThemeIdState(nextThemeId); } }, []);
   const setInterfaceDensity = useCallback((nextDensity: InterfaceDensity) => { if (isInterfaceDensity(nextDensity)) setInterfaceDensityState(nextDensity); }, []);
   const setTextScale = useCallback((nextScale: TextScale) => { if (isTextScale(nextScale)) setTextScaleState(nextScale); }, []);
-  const resetAccessibilityPreferences = useCallback(() => { setInterfaceDensityState("comfortable"); setTextScaleState("standard"); setFontWeightPreferenceState("regular"); setHighContrastState(false); setHighContrastAccentState("teal"); }, []);
+  const resetAccessibilityPreferences = useCallback(() => { setInterfaceDensityState("comfortable"); setTextScaleState("standard"); setFontWeightPreferenceState("regular"); setLineSpacingState("standard"); setReadingFontState("system"); setHighContrastState(false); setHighContrastAccentState("teal"); }, []);
   const setFontWeightPreference = useCallback((weight: FontWeightPreference) => { if (isFontWeightPreference(weight)) setFontWeightPreferenceState(weight); }, []);
+  const setLineSpacing = useCallback((spacing: LineSpacingPreference) => { if (isLineSpacingPreference(spacing)) setLineSpacingState(spacing); }, []);
+  const setReadingFont = useCallback((font: ReadingFontPreference) => { if (isReadingFontPreference(font)) setReadingFontState(font); }, []);
   const setHighContrast = useCallback((enabled: boolean) => setHighContrastState(Boolean(enabled)), []);
   const setHighContrastAccent = useCallback((accent: HighContrastAccent) => { if (isHighContrastAccent(accent)) setHighContrastAccentState(accent); }, []);
   const setFollowSystemAppearance = useCallback((enabled: boolean) => { setFollowSystemAppearanceState(enabled); if (enabled) { Appearance.setColorScheme?.(null); setThemeIdState(getSystemThemeId()); } }, []);
@@ -170,7 +187,9 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   }), [theme]);
   const textScaleMultiplier = TEXT_SCALE_MULTIPLIERS[textScale];
   const fontWeightValue = FONT_WEIGHT_VALUES[fontWeightPreference];
-  const value = useMemo(() => ({ theme, themeId, setThemeId, interfaceDensity, setInterfaceDensity, textScale, textScaleMultiplier, setTextScale, fontWeightPreference, fontWeightValue, setFontWeightPreference, resetAccessibilityPreferences, highContrast, setHighContrast, highContrastAccent, setHighContrastAccent, followSystemAppearance, setFollowSystemAppearance, colorScheme, setColorScheme, locale, setLocale, favoriteCardPreferences, setFavoriteCardPreferences, resetFavoriteCardPreferences, onboardingSeen, preferencesReady: ready, completeOnboarding, skipOnboarding, resetOnboarding, isRTL: direction === "rtl", direction, t }), [colorScheme, completeOnboarding, direction, favoriteCardPreferences, followSystemAppearance, fontWeightPreference, fontWeightValue, highContrast, highContrastAccent, interfaceDensity, locale, onboardingSeen, ready, resetAccessibilityPreferences, resetFavoriteCardPreferences, resetOnboarding, setColorScheme, setFavoriteCardPreferences, setFollowSystemAppearance, setFontWeightPreference, setHighContrast, setHighContrastAccent, setInterfaceDensity, setLocale, setTextScale, setThemeId, skipOnboarding, t, textScale, textScaleMultiplier, theme, themeId]);
+  const lineHeightMultiplier = LINE_HEIGHT_MULTIPLIERS[lineSpacing];
+  const readingFontFamily: "OpenDyslexic-Regular" | undefined = readingFont === "dyslexia" ? "OpenDyslexic-Regular" : undefined;
+  const value = useMemo(() => ({ theme, themeId, setThemeId, interfaceDensity, setInterfaceDensity, textScale, textScaleMultiplier, setTextScale, fontWeightPreference, fontWeightValue, setFontWeightPreference, lineSpacing, lineHeightMultiplier, setLineSpacing, readingFont, readingFontFamily, setReadingFont, resetAccessibilityPreferences, highContrast, setHighContrast, highContrastAccent, setHighContrastAccent, followSystemAppearance, setFollowSystemAppearance, colorScheme, setColorScheme, locale, setLocale, favoriteCardPreferences, setFavoriteCardPreferences, resetFavoriteCardPreferences, onboardingSeen, preferencesReady: ready, completeOnboarding, skipOnboarding, resetOnboarding, isRTL: direction === "rtl", direction, t }), [colorScheme, completeOnboarding, direction, favoriteCardPreferences, followSystemAppearance, fontWeightPreference, fontWeightValue, highContrast, highContrastAccent, interfaceDensity, lineHeightMultiplier, lineSpacing, locale, onboardingSeen, readingFont, readingFontFamily, ready, resetAccessibilityPreferences, resetFavoriteCardPreferences, resetOnboarding, setColorScheme, setFavoriteCardPreferences, setFollowSystemAppearance, setFontWeightPreference, setHighContrast, setHighContrastAccent, setInterfaceDensity, setLineSpacing, setLocale, setReadingFont, setTextScale, setThemeId, skipOnboarding, t, textScale, textScaleMultiplier, theme, themeId]);
 
   return <ThemeContext.Provider value={value}><View style={[{ flex: 1, backgroundColor: theme.colors.background }, themeVariables]}>{children}</View></ThemeContext.Provider>;
 }
