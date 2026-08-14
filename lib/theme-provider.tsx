@@ -9,6 +9,8 @@ import type { FavoriteCardColor, FavoriteCardPreferences, FavoriteCardStyle } fr
 
 export type AppThemeId = "aurora" | "midnight" | "pearl" | "velvet" | "sunset" | "cloud" | "tidal" | "porcelain";
 export type InterfaceDensity = "comfortable" | "compact";
+export type TextScale = "standard" | "large" | "extraLarge";
+export const TEXT_SCALE_MULTIPLIERS: Record<TextScale, number> = { standard: 1, large: 1.15, extraLarge: 1.3 };
 export type AppThemeColors = { background: string; surface: string; surfaceMuted: string; text: string; muted: string; border: string; primary: string; secondary: string; accent: string; glow: string; onPrimary: string };
 export type AppTheme = { id: AppThemeId; isDark: boolean; colors: AppThemeColors };
 
@@ -25,13 +27,16 @@ export const APP_THEMES: Record<AppThemeId, AppTheme> = {
 
 const PREFERENCES_KEY = "omniwave:ui-preferences:v2";
 const DEFAULT_FAVORITE_CARD_PREFERENCES: FavoriteCardPreferences = { style: "glass", color: "teal" };
-type StoredPreferences = { locale?: unknown; themeId?: unknown; favoriteCard?: unknown; onboardingSeen?: unknown; interfaceDensity?: unknown; followSystemAppearance?: unknown };
+type StoredPreferences = { locale?: unknown; themeId?: unknown; favoriteCard?: unknown; onboardingSeen?: unknown; interfaceDensity?: unknown; followSystemAppearance?: unknown; textScale?: unknown };
 type ThemeContextValue = {
   theme: AppTheme;
   themeId: AppThemeId;
   setThemeId: (themeId: AppThemeId) => void;
   interfaceDensity: InterfaceDensity;
   setInterfaceDensity: (density: InterfaceDensity) => void;
+  textScale: TextScale;
+  textScaleMultiplier: number;
+  setTextScale: (scale: TextScale) => void;
   followSystemAppearance: boolean;
   setFollowSystemAppearance: (enabled: boolean) => void;
   colorScheme: ColorScheme;
@@ -54,6 +59,7 @@ type ThemeContextValue = {
 const ThemeContext = createContext<ThemeContextValue | null>(null);
 const isThemeId = (value: unknown): value is AppThemeId => typeof value === "string" && Object.prototype.hasOwnProperty.call(APP_THEMES, value);
 const isInterfaceDensity = (value: unknown): value is InterfaceDensity => value === "comfortable" || value === "compact";
+const isTextScale = (value: unknown): value is TextScale => value === "standard" || value === "large" || value === "extraLarge";
 const getSystemColorScheme = (): ColorScheme => Appearance.getColorScheme() === "dark" ? "dark" : "light";
 const getSystemThemeId = (): AppThemeId => getSystemColorScheme() === "dark" ? "aurora" : "pearl";
 const isFavoriteCardStyle = (value: unknown): value is FavoriteCardStyle => value === "glass" || value === "editorial" || value === "minimal";
@@ -63,6 +69,7 @@ const sanitizeFavoriteCardPreferences = (value: unknown): FavoriteCardPreference
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [themeId, setThemeIdState] = useState<AppThemeId>(getSystemThemeId);
   const [interfaceDensity, setInterfaceDensityState] = useState<InterfaceDensity>("comfortable");
+  const [textScale, setTextScaleState] = useState<TextScale>("standard");
   const [followSystemAppearance, setFollowSystemAppearanceState] = useState(true);
   const [locale, setLocaleState] = useState<AppLocale>("ar");
   const [favoriteCardPreferences, setFavoriteCardPreferencesState] = useState<FavoriteCardPreferences>(DEFAULT_FAVORITE_CARD_PREFERENCES);
@@ -84,6 +91,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
         if (restoredFollowSystem) setThemeIdState(getSystemThemeId());
         else if (isThemeId(stored.themeId)) setThemeIdState(stored.themeId);
         if (isInterfaceDensity(stored.interfaceDensity)) setInterfaceDensityState(stored.interfaceDensity);
+        if (isTextScale(stored.textScale)) setTextScaleState(stored.textScale);
         if (isAppLocale(stored.locale)) setLocaleState(stored.locale);
         const restoredCard = sanitizeFavoriteCardPreferences(stored.favoriteCard);
         setFavoriteCardPreferencesState(restoredCard);
@@ -114,12 +122,13 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (!ready) return;
-    const saved = { locale, themeId, interfaceDensity, followSystemAppearance, ...(isFavoriteCardCustomized ? { favoriteCard: favoriteCardPreferences } : {}), ...(onboardingSeen ? { onboardingSeen: true } : {}) };
+    const saved = { locale, themeId, interfaceDensity, textScale, followSystemAppearance, ...(isFavoriteCardCustomized ? { favoriteCard: favoriteCardPreferences } : {}), ...(onboardingSeen ? { onboardingSeen: true } : {}) };
     void AsyncStorage.setItem(PREFERENCES_KEY, JSON.stringify(saved)).catch(() => undefined);
-  }, [favoriteCardPreferences, followSystemAppearance, interfaceDensity, isFavoriteCardCustomized, locale, onboardingSeen, ready, themeId]);
+  }, [favoriteCardPreferences, followSystemAppearance, interfaceDensity, isFavoriteCardCustomized, locale, onboardingSeen, ready, textScale, themeId]);
 
   const setThemeId = useCallback((nextThemeId: AppThemeId) => { if (isThemeId(nextThemeId)) { setFollowSystemAppearanceState(false); setThemeIdState(nextThemeId); } }, []);
   const setInterfaceDensity = useCallback((nextDensity: InterfaceDensity) => { if (isInterfaceDensity(nextDensity)) setInterfaceDensityState(nextDensity); }, []);
+  const setTextScale = useCallback((nextScale: TextScale) => { if (isTextScale(nextScale)) setTextScaleState(nextScale); }, []);
   const setFollowSystemAppearance = useCallback((enabled: boolean) => { setFollowSystemAppearanceState(enabled); if (enabled) { Appearance.setColorScheme?.(null); setThemeIdState(getSystemThemeId()); } }, []);
   const setColorScheme = useCallback((scheme: ColorScheme) => { setFollowSystemAppearanceState(false); setThemeIdState(scheme === "light" ? "pearl" : "aurora"); }, []);
   const setLocale = useCallback((nextLocale: AppLocale) => { if (isAppLocale(nextLocale)) setLocaleState(nextLocale); }, []);
@@ -133,7 +142,8 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const themeVariables = useMemo(() => vars({
     "color-primary": theme.colors.primary, "color-background": theme.colors.background, "color-surface": theme.colors.surface, "color-foreground": theme.colors.text, "color-muted": theme.colors.muted, "color-border": theme.colors.border, "color-success": theme.colors.primary, "color-warning": theme.colors.secondary, "color-error": theme.colors.accent,
   }), [theme]);
-  const value = useMemo(() => ({ theme, themeId, setThemeId, interfaceDensity, setInterfaceDensity, followSystemAppearance, setFollowSystemAppearance, colorScheme, setColorScheme, locale, setLocale, favoriteCardPreferences, setFavoriteCardPreferences, resetFavoriteCardPreferences, onboardingSeen, preferencesReady: ready, completeOnboarding, skipOnboarding, resetOnboarding, isRTL: direction === "rtl", direction, t }), [colorScheme, completeOnboarding, direction, favoriteCardPreferences, followSystemAppearance, interfaceDensity, locale, onboardingSeen, ready, resetFavoriteCardPreferences, resetOnboarding, setColorScheme, setFavoriteCardPreferences, setFollowSystemAppearance, setInterfaceDensity, setLocale, setThemeId, skipOnboarding, t, theme, themeId]);
+  const textScaleMultiplier = TEXT_SCALE_MULTIPLIERS[textScale];
+  const value = useMemo(() => ({ theme, themeId, setThemeId, interfaceDensity, setInterfaceDensity, textScale, textScaleMultiplier, setTextScale, followSystemAppearance, setFollowSystemAppearance, colorScheme, setColorScheme, locale, setLocale, favoriteCardPreferences, setFavoriteCardPreferences, resetFavoriteCardPreferences, onboardingSeen, preferencesReady: ready, completeOnboarding, skipOnboarding, resetOnboarding, isRTL: direction === "rtl", direction, t }), [colorScheme, completeOnboarding, direction, favoriteCardPreferences, followSystemAppearance, interfaceDensity, locale, onboardingSeen, ready, resetFavoriteCardPreferences, resetOnboarding, setColorScheme, setFavoriteCardPreferences, setFollowSystemAppearance, setInterfaceDensity, setLocale, setTextScale, setThemeId, skipOnboarding, t, textScale, textScaleMultiplier, theme, themeId]);
 
   return <ThemeContext.Provider value={value}><View style={[{ flex: 1, backgroundColor: theme.colors.background }, themeVariables]}>{children}</View></ThemeContext.Provider>;
 }
