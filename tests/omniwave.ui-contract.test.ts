@@ -178,6 +178,25 @@ describe("OmniWave navigation and settings contract", () => {
     }
   });
 
+  it("keeps a live reading preview and limited accessibility reset across export and playlists", () => {
+    const themeProvider = read("lib/theme-provider.tsx");
+    const settings = read("app/(tabs)/settings.tsx");
+    const exportHistory = read("app/(tabs)/export-history.tsx");
+    const playlists = read("components/omniwave/playlists-screen.tsx");
+    const localization = read("lib/localization.ts");
+    expect(themeProvider).toContain("resetAccessibilityPreferences");
+    expect(themeProvider).toContain('setInterfaceDensityState("comfortable")');
+    expect(themeProvider).toContain('setTextScaleState("standard")');
+    expect(settings).toContain('t("textPreviewTitle")');
+    expect(settings).toContain('t("resetAccessibility")');
+    expect(settings).toContain("textScaleMultiplier");
+    expect(exportHistory).toContain("textScaleMultiplier");
+    expect(playlists).toContain("textScaleMultiplier");
+    for (const key of ["textPreviewTitle", "textPreviewBody", "resetAccessibility", "resetAccessibilityHint"]) {
+      expect(localization).toContain(key);
+    }
+  });
+
   it("keeps respectful community standards connected to the public contribution path", () => {
     const codeOfConduct = read("CODE_OF_CONDUCT.md");
     const readme = read("README.md");
