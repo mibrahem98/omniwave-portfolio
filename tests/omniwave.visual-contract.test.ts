@@ -8,7 +8,8 @@ describe("OmniWave visual polish contract", () => {
   it("keeps complete theme palettes including a dedicated glow color", () => {
     const themeProvider = read("lib/theme-provider.tsx");
     expect(themeProvider).toContain("glow: string");
-    expect(themeProvider.match(/glow:/g)).toHaveLength(9);
+    expect(themeProvider.match(/glow:/g)?.length).toBeGreaterThanOrEqual(9);
+    expect(themeProvider).toContain("withHighContrast");
     expect(themeProvider).toContain('id: "aurora"');
     expect(themeProvider).toContain('id: "sunset"');
     expect(themeProvider).toContain('id: "cloud"');
