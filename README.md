@@ -32,7 +32,7 @@ The export flow exposes quick date ranges, a content preview, field selection, f
 
 ![OmniWave settings with language choices, Aurora dark mode, and theme controls](docs/assets/settings-view.png)
 
-The settings experience combines four localized languages, an explicit Aurora dark-mode switch, eight saved themes, and accessible switches for listening preferences.
+The settings experience combines four localized languages, eight saved themes with concise palette guidance, an explicit Aurora dark-mode switch, optional system-appearance matching, and local comfortable or compact reading density.
 
 ## Portfolio highlights
 
@@ -42,7 +42,7 @@ The settings experience combines four localized languages, an explicit Aurora da
 | **Local-first architecture** | Validated local models for tracks, playlists, player snapshots, audio preferences, listening history, and visual-card preferences. |
 | **Playback experience** | Full player, mini player, queue management, sleep timer, interactive progress, visual pulse, and transitions that respect reduced-motion preferences. |
 | **International UX** | Arabic, English, French, and Spanish, including complete RTL behavior for Arabic. |
-| **Personalization** | Eight locally saved themes—including Cloud, Tidal, and Porcelain light surfaces—an explicit Aurora dark-mode switch, audio preferences, equalizer controls, and customizable favorite-share cards. |
+| **Personalization** | Eight locally saved themes—including Cloud, Tidal, and Porcelain light surfaces—optional system-appearance matching, comfortable or compact interface density, audio preferences, equalizer controls, and customizable favorite-share cards. |
 | **Privacy-aware sharing** | Previewable TXT/CSV listening-history export and favorite-card sharing that intentionally exclude local audio URIs and file paths. |
 | **Reliable delivery** | TypeScript, Vitest contract tests, Expo linting, GitHub Actions static-quality checks, validation of restored local preferences, and explicit native-device test boundaries. |
 
