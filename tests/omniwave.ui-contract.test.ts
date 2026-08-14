@@ -104,4 +104,38 @@ describe("OmniWave navigation and settings contract", () => {
     expect(read("CONTRIBUTING.md")).toContain("pnpm check");
     expect(read("CONTRIBUTING.md")).toContain("reduced-motion");
   });
+
+  it("keeps search reset and onboarding skip as explicit local-only actions", () => {
+    const library = read("app/(tabs)/library.tsx");
+    const themeProvider = read("lib/theme-provider.tsx");
+    const onboarding = read("components/omniwave/onboarding-coach.tsx");
+    expect(library).toContain("resetDiscoveryPreferences");
+    expect(library).toContain("AsyncStorage.removeItem(LIBRARY_DISCOVERY_KEY)");
+    expect(library).toContain('t("resetSearchPreferences")');
+    expect(themeProvider).toContain("skipOnboarding");
+    expect(onboarding).toContain("onPress={skipOnboarding}");
+  });
+
+  it("keeps all named light themes selectable with a non-color selection cue", () => {
+    const themeProvider = read("lib/theme-provider.tsx");
+    const settings = read("app/(tabs)/settings.tsx");
+    const localization = read("lib/localization.ts");
+    for (const themeId of ["cloud", "tidal", "porcelain"]) {
+      expect(themeProvider).toContain(`${themeId}: { id: "${themeId}"`);
+    }
+    expect(settings).toContain("themeLabels");
+    expect(settings).toContain('name="check"');
+    expect(settings).toContain('accessibilityState={{ selected }}');
+    expect(localization).toContain("themeCloud");
+    expect(localization).toContain("themeTidal");
+    expect(localization).toContain("themePorcelain");
+  });
+
+  it("keeps respectful community standards connected to the public contribution path", () => {
+    const codeOfConduct = read("CODE_OF_CONDUCT.md");
+    const readme = read("README.md");
+    expect(readme).toContain("CODE_OF_CONDUCT.md");
+    expect(codeOfConduct).toContain("Unacceptable conduct");
+    expect(codeOfConduct).toContain("audio URIs");
+  });
 });
