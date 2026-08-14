@@ -6,7 +6,7 @@ import { ScreenContainer } from "@/components/screen-container";
 import { EQ_LABELS } from "@/lib/omniwave/data";
 import { LOCALE_META, SUPPORTED_LOCALES, TRANSLATIONS } from "@/lib/localization";
 import { usePlayer } from "@/lib/omniwave/player-store";
-import { APP_THEMES, type AppThemeId, type InterfaceDensity, useThemeContext } from "@/lib/theme-provider";
+import { APP_THEMES, type AppThemeId, type InterfaceDensity, type TextScale, useThemeContext } from "@/lib/theme-provider";
 
 type EffectRow = {
   id: "bassBoost" | "reverb" | "surround";
@@ -21,14 +21,16 @@ const EFFECTS: EffectRow[] = [
 ];
 const THEME_IDS = Object.keys(APP_THEMES) as AppThemeId[];
 const DENSITIES: InterfaceDensity[] = ["comfortable", "compact"];
+const TEXT_SCALES: TextScale[] = ["standard", "large", "extraLarge"];
 
 export default function SettingsScreen() {
   const { preferences, profile, snapshot, updatePreference, updateEqBand, resetAudioPreferences } = usePlayer();
-  const { theme, themeId, setThemeId, interfaceDensity, setInterfaceDensity, followSystemAppearance, setFollowSystemAppearance, colorScheme, setColorScheme, locale, setLocale, resetOnboarding, isRTL, t } = useThemeContext();
+  const { theme, themeId, setThemeId, interfaceDensity, setInterfaceDensity, textScale, setTextScale, followSystemAppearance, setFollowSystemAppearance, colorScheme, setColorScheme, locale, setLocale, resetOnboarding, isRTL, t } = useThemeContext();
   const align = isRTL ? "right" : "left";
   const direction = isRTL ? "row-reverse" : "row";
   const themeLabels: Record<AppThemeId, string> = { ...TRANSLATIONS[locale].themeNames, cloud: t("themeCloud"), tidal: t("themeTidal"), porcelain: t("themePorcelain") };
   const themeDescriptions: Partial<Record<AppThemeId, string>> = { cloud: t("themeCloudHint"), tidal: t("themeTidalHint"), porcelain: t("themePorcelainHint") };
+  const textScaleLabels: Record<TextScale, string> = { standard: t("textScaleStandard"), large: t("textScaleLarge"), extraLarge: t("textScaleExtraLarge") };
   const selectedThemeName = themeLabels[themeId];
 
   return (
@@ -96,6 +98,10 @@ export default function SettingsScreen() {
             <View style={[styles.pickerCard, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border }]}>
               <View style={[styles.pickerTitleRow, { flexDirection: direction }]}><View style={[styles.settingIcon, { backgroundColor: `${theme.colors.accent}18` }]}><MaterialIcons name="format-size" size={20} color={theme.colors.accent} /></View><View style={styles.pickerCopy}><Text style={[styles.settingTitle, { color: theme.colors.text, textAlign: align }]}>{t("appearanceDensity")}</Text><Text style={[styles.settingSubtitle, { color: theme.colors.muted, textAlign: align }]}>{interfaceDensity === "comfortable" ? t("densityComfortableHint") : t("densityCompactHint")}</Text></View></View>
               <View accessibilityRole="radiogroup" style={[styles.choiceRow, { flexDirection: direction }]}>{DENSITIES.map((density) => { const selected = interfaceDensity === density; const label = density === "comfortable" ? t("densityComfortable") : t("densityCompact"); return <Pressable key={density} accessibilityRole="radio" accessibilityLabel={label} accessibilityHint={density === "comfortable" ? t("densityComfortableHint") : t("densityCompactHint")} accessibilityState={{ selected }} onPress={() => setInterfaceDensity(density)} style={({ pressed }) => [styles.choice, styles.densityChoice, { borderColor: selected ? theme.colors.primary : theme.colors.border, backgroundColor: selected ? `${theme.colors.primary}16` : theme.colors.surfaceMuted }, pressed && styles.pressed]}><MaterialIcons name={density === "comfortable" ? "format-line-spacing" : "density-small"} size={17} color={selected ? theme.colors.primary : theme.colors.muted} /><Text style={[styles.choiceText, { color: selected ? theme.colors.primary : theme.colors.muted }]}>{label}</Text></Pressable>; })}</View>
+            </View>
+            <View style={[styles.pickerCard, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border }]}>
+              <View style={[styles.pickerTitleRow, { flexDirection: direction }]}><View style={[styles.settingIcon, { backgroundColor: `${theme.colors.accent}18` }]}><MaterialIcons name="text-fields" size={20} color={theme.colors.accent} /></View><View style={styles.pickerCopy}><Text style={[styles.settingTitle, { color: theme.colors.text, textAlign: align }]}>{t("textSize")}</Text><Text style={[styles.settingSubtitle, { color: theme.colors.muted, textAlign: align }]}>{t("textSizeHint")}</Text></View></View>
+              <View accessibilityRole="radiogroup" style={[styles.choiceRow, { flexDirection: direction }]}>{TEXT_SCALES.map((scale) => { const selected = textScale === scale; return <Pressable key={scale} accessibilityRole="radio" accessibilityLabel={textScaleLabels[scale]} accessibilityState={{ selected }} onPress={() => setTextScale(scale)} style={({ pressed }) => [styles.choice, { borderColor: selected ? theme.colors.accent : theme.colors.border, backgroundColor: selected ? `${theme.colors.accent}16` : theme.colors.surfaceMuted }, pressed && styles.pressed]}><Text style={[styles.choiceText, { color: selected ? theme.colors.accent : theme.colors.muted }]}>{textScaleLabels[scale]}</Text></Pressable>; })}</View>
             </View>
             <Pressable accessibilityRole="button" accessibilityLabel={t("onboardingReplay")} accessibilityHint={t("onboardingReplayHint")} onPress={resetOnboarding} style={({ pressed }) => [styles.sessionRoute, { backgroundColor: theme.colors.surfaceMuted, borderColor: theme.colors.border, flexDirection: direction, marginBottom: 8 }, pressed && styles.pressed]}><View style={[styles.routeIcon, { backgroundColor: `${theme.colors.primary}18` }]}><MaterialIcons name="auto-stories" size={21} color={theme.colors.primary} /></View><View style={styles.routeCopy}><Text style={[styles.routeTitle, { color: theme.colors.text, textAlign: align }]}>{t("onboardingReplay")}</Text><Text style={[styles.routeText, { color: theme.colors.muted, textAlign: align }]}>{t("onboardingReplayHint")}</Text></View><MaterialIcons name={isRTL ? "chevron-left" : "chevron-right"} size={23} color={theme.colors.muted} /></Pressable>
 
