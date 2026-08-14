@@ -237,6 +237,29 @@ describe("OmniWave navigation and settings contract", () => {
     }
   });
 
+  it("keeps local font weight, full-player preview, and native-only haptic feedback for reading controls", () => {
+    const themeProvider = read("lib/theme-provider.tsx");
+    const settings = read("app/(tabs)/settings.tsx");
+    const trackRow = read("components/omniwave/track-row.tsx");
+    const playerPreview = read("components/omniwave/accessibility-player-preview.tsx");
+    const haptics = read("lib/omniwave/haptics.ts");
+    const localization = read("lib/localization.ts");
+    expect(themeProvider).toContain("FontWeightPreference");
+    expect(themeProvider).toContain("FONT_WEIGHT_VALUES");
+    expect(themeProvider).toContain("setFontWeightPreference");
+    expect(settings).toContain("FONT_WEIGHTS");
+    expect(settings).toContain("AccessibilityPlayerPreview");
+    expect(settings).toContain("haptic.selection");
+    expect(settings).toContain("haptic.medium");
+    expect(trackRow).toContain("fontWeightValue");
+    expect(playerPreview).toContain("skip-previous");
+    expect(haptics).toContain("selectionAsync");
+    expect(haptics).toContain('Platform.OS !== "web"');
+    for (const key of ["fontWeight", "fontWeightHint", "fontWeightRegular", "fontWeightMedium", "fontWeightBold"]) {
+      expect(localization).toContain(key);
+    }
+  });
+
   it("keeps respectful community standards connected to the public contribution path", () => {
     const codeOfConduct = read("CODE_OF_CONDUCT.md");
     const readme = read("README.md");
