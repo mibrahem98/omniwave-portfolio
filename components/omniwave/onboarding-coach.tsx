@@ -9,7 +9,7 @@ const STEP_TITLES = ["onboardingLibraryTitle", "onboardingExportTitle", "onboard
 const STEP_DETAILS = ["onboardingLibraryDetail", "onboardingExportDetail", "onboardingAppearanceDetail"] as const;
 
 export function OnboardingCoach() {
-  const { completeOnboarding, isRTL, onboardingSeen, preferencesReady, t, theme } = useThemeContext();
+  const { completeOnboarding, isRTL, onboardingSeen, preferencesReady, skipOnboarding, t, theme } = useThemeContext();
   const [step, setStep] = useState(0);
   const [reduceMotion, setReduceMotion] = useState(false);
   const contentOpacity = useRef(new Animated.Value(1)).current;
@@ -47,7 +47,7 @@ export function OnboardingCoach() {
       <View style={[styles.card, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border }]}> 
         <View style={[styles.topline, { flexDirection: direction }]}>
           <Text style={[styles.progress, { color: theme.colors.primary }]}>{`${step + 1} / ${STEP_TITLES.length}`}</Text>
-          <Pressable accessibilityRole="button" accessibilityLabel={t("onboardingSkip")} onPress={completeOnboarding} hitSlop={8} style={({ pressed }) => [styles.skip, pressed && styles.pressed]}>
+          <Pressable accessibilityRole="button" accessibilityLabel={t("onboardingSkip")} onPress={skipOnboarding} hitSlop={8} style={({ pressed }) => [styles.skip, pressed && styles.pressed]}>
             <Text style={[styles.skipText, { color: theme.colors.muted }]}>{t("onboardingSkip")}</Text>
           </Pressable>
         </View>
