@@ -90,6 +90,12 @@ const config: ExpoConfig = {
     "@react-native-community/datetimepicker",
     "expo-document-picker",
     [
+      "expo-font",
+      {
+        fonts: ["./assets/fonts/OpenDyslexic-Regular.ttf", "./assets/fonts/OpenDyslexic-Bold.ttf"],
+      },
+    ],
+    [
       "expo-audio",
       {
         microphonePermission: "Allow $(PRODUCT_NAME) to access your microphone.",
