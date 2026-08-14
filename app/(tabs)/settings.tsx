@@ -25,13 +25,14 @@ const TEXT_SCALES: TextScale[] = ["standard", "large", "extraLarge"];
 
 export default function SettingsScreen() {
   const { preferences, profile, snapshot, updatePreference, updateEqBand, resetAudioPreferences } = usePlayer();
-  const { theme, themeId, setThemeId, interfaceDensity, setInterfaceDensity, textScale, setTextScale, followSystemAppearance, setFollowSystemAppearance, colorScheme, setColorScheme, locale, setLocale, resetOnboarding, isRTL, t } = useThemeContext();
+  const { theme, themeId, setThemeId, interfaceDensity, setInterfaceDensity, textScale, textScaleMultiplier, setTextScale, resetAccessibilityPreferences, followSystemAppearance, setFollowSystemAppearance, colorScheme, setColorScheme, locale, setLocale, resetOnboarding, isRTL, t } = useThemeContext();
   const align = isRTL ? "right" : "left";
   const direction = isRTL ? "row-reverse" : "row";
   const themeLabels: Record<AppThemeId, string> = { ...TRANSLATIONS[locale].themeNames, cloud: t("themeCloud"), tidal: t("themeTidal"), porcelain: t("themePorcelain") };
   const themeDescriptions: Partial<Record<AppThemeId, string>> = { cloud: t("themeCloudHint"), tidal: t("themeTidalHint"), porcelain: t("themePorcelainHint") };
   const textScaleLabels: Record<TextScale, string> = { standard: t("textScaleStandard"), large: t("textScaleLarge"), extraLarge: t("textScaleExtraLarge") };
   const selectedThemeName = themeLabels[themeId];
+  const scaled = (value: number) => Math.round(value * textScaleMultiplier);
 
   return (
     <ScreenContainer className="px-5">
@@ -103,6 +104,8 @@ export default function SettingsScreen() {
               <View style={[styles.pickerTitleRow, { flexDirection: direction }]}><View style={[styles.settingIcon, { backgroundColor: `${theme.colors.accent}18` }]}><MaterialIcons name="text-fields" size={20} color={theme.colors.accent} /></View><View style={styles.pickerCopy}><Text style={[styles.settingTitle, { color: theme.colors.text, textAlign: align }]}>{t("textSize")}</Text><Text style={[styles.settingSubtitle, { color: theme.colors.muted, textAlign: align }]}>{t("textSizeHint")}</Text></View></View>
               <View accessibilityRole="radiogroup" style={[styles.choiceRow, { flexDirection: direction }]}>{TEXT_SCALES.map((scale) => { const selected = textScale === scale; return <Pressable key={scale} accessibilityRole="radio" accessibilityLabel={textScaleLabels[scale]} accessibilityState={{ selected }} onPress={() => setTextScale(scale)} style={({ pressed }) => [styles.choice, { borderColor: selected ? theme.colors.accent : theme.colors.border, backgroundColor: selected ? `${theme.colors.accent}16` : theme.colors.surfaceMuted }, pressed && styles.pressed]}><Text style={[styles.choiceText, { color: selected ? theme.colors.accent : theme.colors.muted }]}>{textScaleLabels[scale]}</Text></Pressable>; })}</View>
             </View>
+            <View style={[styles.textPreviewCard, { backgroundColor: `${theme.colors.primary}0D`, borderColor: `${theme.colors.primary}45` }]}><View style={[styles.textPreviewHeader, { flexDirection: direction }]}><MaterialIcons name="visibility" size={18} color={theme.colors.primary} /><Text style={[styles.textPreviewLabel, { color: theme.colors.primary, textAlign: align }]}>{t("textPreviewTitle")}</Text></View><Text style={[styles.textPreviewTitle, { color: theme.colors.text, textAlign: align, fontSize: scaled(18), lineHeight: scaled(25) }]}>{t("nowPlaying")}</Text><Text style={[styles.textPreviewBody, { color: theme.colors.muted, textAlign: align, fontSize: scaled(12), lineHeight: scaled(18) }]}>{t("textPreviewBody")}</Text></View>
+            <Pressable accessibilityRole="button" accessibilityLabel={t("resetAccessibility")} accessibilityHint={t("resetAccessibilityHint")} onPress={resetAccessibilityPreferences} style={({ pressed }) => [styles.resetButton, { borderColor: theme.colors.border, backgroundColor: theme.colors.surfaceMuted, flexDirection: direction, marginTop: 0, marginBottom: 8 }, pressed && styles.pressed]}><MaterialIcons name="accessibility-new" size={18} color={theme.colors.primary} /><View style={styles.resetCopy}><Text style={[styles.resetTitle, { color: theme.colors.text, textAlign: align }]}>{t("resetAccessibility")}</Text><Text style={[styles.resetHint, { color: theme.colors.muted, textAlign: align }]}>{t("resetAccessibilityHint")}</Text></View></Pressable>
             <Pressable accessibilityRole="button" accessibilityLabel={t("onboardingReplay")} accessibilityHint={t("onboardingReplayHint")} onPress={resetOnboarding} style={({ pressed }) => [styles.sessionRoute, { backgroundColor: theme.colors.surfaceMuted, borderColor: theme.colors.border, flexDirection: direction, marginBottom: 8 }, pressed && styles.pressed]}><View style={[styles.routeIcon, { backgroundColor: `${theme.colors.primary}18` }]}><MaterialIcons name="auto-stories" size={21} color={theme.colors.primary} /></View><View style={styles.routeCopy}><Text style={[styles.routeTitle, { color: theme.colors.text, textAlign: align }]}>{t("onboardingReplay")}</Text><Text style={[styles.routeText, { color: theme.colors.muted, textAlign: align }]}>{t("onboardingReplayHint")}</Text></View><MaterialIcons name={isRTL ? "chevron-left" : "chevron-right"} size={23} color={theme.colors.muted} /></Pressable>
 
             <View style={[styles.pickerCard, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border }]}>
@@ -224,6 +227,7 @@ const styles = StyleSheet.create({
   eqTrack: { height: 118, width: "100%", maxWidth: 16, borderRadius: 9, justifyContent: "flex-end", overflow: "hidden" },
   eqFill: { width: "100%", borderRadius: 9 },
   eqLabel: { fontSize: 8, lineHeight: 12, fontWeight: "700" },
+  textPreviewCard: { marginTop: 12, marginBottom: 10, padding: 13, borderRadius: 18, borderWidth: 1 }, textPreviewHeader: { alignItems: "center", gap: 7 }, textPreviewLabel: { fontSize: 11, lineHeight: 16, fontWeight: "900", flex: 1 }, textPreviewTitle: { marginTop: 9, fontWeight: "900" }, textPreviewBody: { marginTop: 2 },
   resetButton: { marginTop: 17, minHeight: 54, paddingHorizontal: 12, borderWidth: 1, borderRadius: 15, alignItems: "center", gap: 10 },
   resetCopy: { flex: 1 },
   resetTitle: { fontSize: 12, lineHeight: 17, fontWeight: "900" },
