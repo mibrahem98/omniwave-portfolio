@@ -5,6 +5,10 @@ export type ListeningHistoryEntry = { trackId: string; playedAt: number };
 export type FavoriteCardStyle = "glass" | "editorial" | "minimal";
 export type FavoriteCardColor = "teal" | "violet" | "rose";
 export type FavoriteCardPreferences = { style: FavoriteCardStyle; color: FavoriteCardColor };
+export type VideoPlaybackRate = 0.5 | 0.75 | 1 | 1.25 | 1.5 | 2;
+export type VideoPreferences = { playbackRate: VideoPlaybackRate; loopEnabled: boolean; muted: boolean; captionsEnabled: boolean };
+export type VideoItem = { id: string; title: string; localUri: string; thumbnailUri?: string; durationSeconds: number; sizeBytes: number; mimeType: string; addedAt: number; lastPositionSeconds: number; isFavorite: boolean };
+export type VideoPlaybackSnapshot = { activeVideoId: string | null; isPlaying: boolean; positionSeconds: number; durationSeconds: number; isBuffering: boolean; playbackRate: VideoPlaybackRate; loopEnabled: boolean; muted: boolean; captionsEnabled: boolean };
 
 export type Track = {
   id: string;

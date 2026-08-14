@@ -286,6 +286,37 @@ describe("OmniWave navigation and settings contract", () => {
     }
   });
 
+  it("keeps local video import, playback controls, captions, and privacy boundaries available", () => {
+    const types = read("lib/omniwave/types.ts");
+    const validation = read("lib/omniwave/validation.ts");
+    const store = read("lib/omniwave/video-store.tsx");
+    const rootLayout = read("app/_layout.tsx");
+    const tabs = read("app/(tabs)/_layout.tsx");
+    const home = read("app/(tabs)/index.tsx");
+    const library = read("app/(tabs)/videos.tsx");
+    const player = read("app/(tabs)/video-player.tsx");
+    const localization = read("lib/localization.ts");
+    expect(types).toContain("export type VideoItem");
+    expect(types).toContain("export type VideoPreferences");
+    expect(validation).toContain("isSafeLocalVideoUri");
+    expect(validation).toContain("isSafeLocalSubtitleUri");
+    expect(store).toContain("omniwave:video-library:v1");
+    expect(rootLayout).toContain("VideoProvider");
+    expect(tabs).toContain('name="videos" options={{ href: null }}');
+    expect(tabs).toContain('name="video-player" options={{ href: null }}');
+    expect(home).toContain('router.push("/(tabs)/videos"');
+    expect(library).toContain("importVideoFiles");
+    expect(library).toContain('t("videoLocalOnly")');
+    expect(player).toContain("useVideoPlayer");
+    expect(player).toContain("allowsFullscreen");
+    expect(player).toContain("allowsPictureInPicture");
+    expect(player).toContain("availableSubtitleTracks");
+    expect(player).toContain("updateVideoPosition");
+    for (const key of ["videos", "videoLibrary", "videoEmpty", "videoLocalOnly", "playbackSpeed", "captions", "pictureInPicture"]) {
+      expect(localization).toContain(key);
+    }
+  });
+
   it("keeps respectful community standards connected to the public contribution path", () => {
     const codeOfConduct = read("CODE_OF_CONDUCT.md");
     const readme = read("README.md");

@@ -39,6 +39,8 @@ function TabChrome() {
         <Tabs.Screen name="profile" options={{ href: null }} />
         <Tabs.Screen name="metadata-review" options={{ href: null }} />
         <Tabs.Screen name="export-history" options={{ href: null }} />
+        <Tabs.Screen name="videos" options={{ href: null }} />
+        <Tabs.Screen name="video-player" options={{ href: null }} />
       </Tabs>
       <MiniPlayer />
     </View>

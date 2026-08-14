@@ -22,6 +22,7 @@ const MAPPING = {
   "rectangle.stack.fill": "library-music",
   "gearshape.fill": "settings",
   "waveform.path.ecg": "equalizer",
+  "video.fill": "video-library",
   "slider.horizontal.3": "tune",
   "sparkles": "auto-awesome",
 } as IconMapping;
