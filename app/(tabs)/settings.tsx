@@ -26,7 +26,8 @@ export default function SettingsScreen() {
   const { theme, themeId, setThemeId, colorScheme, setColorScheme, locale, setLocale, resetOnboarding, isRTL, t } = useThemeContext();
   const align = isRTL ? "right" : "left";
   const direction = isRTL ? "row-reverse" : "row";
-  const selectedThemeName = TRANSLATIONS[locale].themeNames[themeId];
+  const themeLabels: Record<AppThemeId, string> = { ...TRANSLATIONS[locale].themeNames, cloud: t("themeCloud"), tidal: t("themeTidal"), porcelain: t("themePorcelain") };
+  const selectedThemeName = themeLabels[themeId];
 
   return (
     <ScreenContainer className="px-5">
@@ -82,8 +83,8 @@ export default function SettingsScreen() {
               </View>
             </View>
 
-            <View style={[styles.settingRow, { flexDirection: direction, backgroundColor: theme.colors.surface, borderColor: theme.colors.border, marginBottom: 8 }]}>
-              <View style={[styles.rowHeader, { flexDirection: direction }]}><View style={[styles.settingIcon, { backgroundColor: `${theme.colors.secondary}18` }]}><MaterialIcons name="dark-mode" size={20} color={theme.colors.secondary} /></View><View style={styles.settingCopy}><Text style={[styles.settingTitle, { color: theme.colors.text, textAlign: align }]}>{t("darkMode")}</Text><Text style={[styles.settingSubtitle, { color: theme.colors.muted, textAlign: align }]}>{t("darkModeHint")}</Text></View></View>
+              <View style={[styles.settingRow, { flexDirection: direction, backgroundColor: theme.colors.surface, borderColor: theme.colors.border, marginBottom: 8 }]}>
+              <View style={[styles.rowHeader, { flexDirection: direction }]}><View style={[styles.settingIcon, { backgroundColor: `${theme.colors.secondary}18` }]}><MaterialIcons name={theme.isDark ? "dark-mode" : "light-mode"} size={20} color={theme.colors.secondary} /></View><View style={styles.settingCopy}><Text style={[styles.settingTitle, { color: theme.colors.text, textAlign: align }]}>{t("darkMode")}</Text><Text style={[styles.settingSubtitle, { color: theme.colors.muted, textAlign: align }]}>{t("darkModeHint")}</Text></View></View>
               <Switch accessibilityRole="switch" accessibilityLabel={t("darkMode")} accessibilityHint={t("darkModeHint")} accessibilityState={{ checked: colorScheme === "dark" }} value={colorScheme === "dark"} onValueChange={(enabled) => setColorScheme(enabled ? "dark" : "light")} trackColor={{ false: theme.colors.border, true: `${theme.colors.primary}88` }} thumbColor={colorScheme === "dark" ? theme.colors.primary : theme.colors.text} />
             </View>
             <Pressable accessibilityRole="button" accessibilityLabel={t("onboardingReplay")} accessibilityHint={t("onboardingReplayHint")} onPress={resetOnboarding} style={({ pressed }) => [styles.sessionRoute, { backgroundColor: theme.colors.surfaceMuted, borderColor: theme.colors.border, flexDirection: direction, marginBottom: 8 }, pressed && styles.pressed]}><View style={[styles.routeIcon, { backgroundColor: `${theme.colors.primary}18` }]}><MaterialIcons name="auto-stories" size={21} color={theme.colors.primary} /></View><View style={styles.routeCopy}><Text style={[styles.routeTitle, { color: theme.colors.text, textAlign: align }]}>{t("onboardingReplay")}</Text><Text style={[styles.routeText, { color: theme.colors.muted, textAlign: align }]}>{t("onboardingReplayHint")}</Text></View><MaterialIcons name={isRTL ? "chevron-left" : "chevron-right"} size={23} color={theme.colors.muted} /></Pressable>
@@ -93,14 +94,14 @@ export default function SettingsScreen() {
                 <View style={[styles.settingIcon, { backgroundColor: `${theme.colors.secondary}18` }]}><MaterialIcons name="palette" size={20} color={theme.colors.secondary} /></View>
                 <View style={styles.pickerCopy}>
                   <Text style={[styles.settingTitle, { color: theme.colors.text, textAlign: align }]}>{t("themes")}</Text>
-                  <Text style={[styles.settingSubtitle, { color: theme.colors.muted, textAlign: align }]}>{selectedThemeName}</Text>
+                  <Text style={[styles.settingSubtitle, { color: theme.colors.muted, textAlign: align }]}>{`${selectedThemeName} · ${t("themePaletteHint")}`}</Text>
                 </View>
               </View>
               <View accessibilityRole="radiogroup" style={styles.themeGrid}>
                 {THEME_IDS.map((id) => {
                   const option = APP_THEMES[id];
                   const selected = id === themeId;
-                  return <Pressable key={id} accessibilityRole="radio" accessibilityLabel={TRANSLATIONS[locale].themeNames[id]} accessibilityState={{ selected }} onPress={() => setThemeId(id)} style={({ pressed }) => [styles.themeOption, { borderColor: selected ? theme.colors.primary : theme.colors.border, backgroundColor: option.colors.surface }, pressed && styles.pressed]}><View style={[styles.themeSwatch, { backgroundColor: option.colors.background }]}><View style={[styles.themeDot, { backgroundColor: option.colors.primary }]} /><View style={[styles.themeLine, { backgroundColor: option.colors.text }]} /></View><Text numberOfLines={1} style={[styles.themeName, { color: selected ? theme.colors.primary : theme.colors.text }]}>{TRANSLATIONS[locale].themeNames[id]}</Text></Pressable>;
+                  return <Pressable key={id} accessibilityRole="radio" accessibilityLabel={themeLabels[id]} accessibilityState={{ selected }} onPress={() => setThemeId(id)} style={({ pressed }) => [styles.themeOption, { borderColor: selected ? theme.colors.primary : theme.colors.border, backgroundColor: option.colors.surface }, pressed && styles.pressed]}><View style={[styles.themeSwatch, { backgroundColor: option.colors.background }]}><View style={[styles.themeDot, { backgroundColor: option.colors.primary }]} /><View style={[styles.themeLine, { backgroundColor: option.colors.text }]} />{selected ? <View style={[styles.themeCheck, { backgroundColor: option.colors.primary }]}><MaterialIcons name="check" size={11} color={option.colors.onPrimary} /></View> : null}</View><Text numberOfLines={1} style={[styles.themeName, { color: selected ? theme.colors.primary : theme.colors.text }]}>{themeLabels[id]}</Text></Pressable>;
                 })}
               </View>
             </View>
@@ -188,9 +189,10 @@ const styles = StyleSheet.create({
   choiceText: { fontSize: 11, lineHeight: 16, fontWeight: "800" },
   themeGrid: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: 14 },
   themeOption: { width: "48%", minHeight: 78, padding: 8, borderRadius: 15, borderWidth: 1 },
-  themeSwatch: { height: 29, borderRadius: 9, padding: 6, flexDirection: "row", alignItems: "center", gap: 5 },
+  themeSwatch: { height: 31, borderRadius: 10, padding: 6, flexDirection: "row", alignItems: "center", gap: 5 },
   themeDot: { width: 10, height: 10, borderRadius: 5 },
   themeLine: { height: 4, width: 22, borderRadius: 4, opacity: 0.85 },
+  themeCheck: { width: 18, height: 18, borderRadius: 9, marginLeft: "auto", alignItems: "center", justifyContent: "center" },
   themeName: { fontSize: 10, lineHeight: 14, fontWeight: "800", textAlign: "center", marginTop: 6 },
   settingRow: { minHeight: 82, paddingHorizontal: 14, borderRadius: 20, borderWidth: 1, alignItems: "center", justifyContent: "space-between" },
   effectSeparator: { height: 8 },
