@@ -131,6 +131,28 @@ describe("OmniWave navigation and settings contract", () => {
     expect(localization).toContain("themePorcelain");
   });
 
+  it("keeps adaptive appearance and interface density local, explicit, and accessible", () => {
+    const themeProvider = read("lib/theme-provider.tsx");
+    const settings = read("app/(tabs)/settings.tsx");
+    const tabs = read("app/(tabs)/_layout.tsx");
+    const localization = read("lib/localization.ts");
+    expect(themeProvider).toContain("InterfaceDensity");
+    expect(themeProvider).toContain("followSystemAppearance");
+    expect(themeProvider).toContain("Appearance.addChangeListener");
+    expect(themeProvider).toContain("setFollowSystemAppearance");
+    expect(themeProvider).toContain("interfaceDensity");
+    expect(settings).toContain("DENSITIES");
+    expect(settings).toContain('t("systemAppearance")');
+    expect(settings).toContain('t("appearanceDensity")');
+    expect(settings).toContain("themeDescriptions");
+    expect(settings).toContain('accessibilityRole="radiogroup"');
+    expect(tabs).toContain("interfaceDensity");
+    expect(tabs).toContain("const compact");
+    for (const key of ["appearanceDensity", "systemAppearance", "themeCloudHint", "themeTidalHint", "themePorcelainHint"]) {
+      expect(localization).toContain(key);
+    }
+  });
+
   it("keeps respectful community standards connected to the public contribution path", () => {
     const codeOfConduct = read("CODE_OF_CONDUCT.md");
     const readme = read("README.md");
