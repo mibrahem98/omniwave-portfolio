@@ -37,6 +37,7 @@ type ThemeContextValue = {
   textScale: TextScale;
   textScaleMultiplier: number;
   setTextScale: (scale: TextScale) => void;
+  resetAccessibilityPreferences: () => void;
   followSystemAppearance: boolean;
   setFollowSystemAppearance: (enabled: boolean) => void;
   colorScheme: ColorScheme;
@@ -129,6 +130,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const setThemeId = useCallback((nextThemeId: AppThemeId) => { if (isThemeId(nextThemeId)) { setFollowSystemAppearanceState(false); setThemeIdState(nextThemeId); } }, []);
   const setInterfaceDensity = useCallback((nextDensity: InterfaceDensity) => { if (isInterfaceDensity(nextDensity)) setInterfaceDensityState(nextDensity); }, []);
   const setTextScale = useCallback((nextScale: TextScale) => { if (isTextScale(nextScale)) setTextScaleState(nextScale); }, []);
+  const resetAccessibilityPreferences = useCallback(() => { setInterfaceDensityState("comfortable"); setTextScaleState("standard"); }, []);
   const setFollowSystemAppearance = useCallback((enabled: boolean) => { setFollowSystemAppearanceState(enabled); if (enabled) { Appearance.setColorScheme?.(null); setThemeIdState(getSystemThemeId()); } }, []);
   const setColorScheme = useCallback((scheme: ColorScheme) => { setFollowSystemAppearanceState(false); setThemeIdState(scheme === "light" ? "pearl" : "aurora"); }, []);
   const setLocale = useCallback((nextLocale: AppLocale) => { if (isAppLocale(nextLocale)) setLocaleState(nextLocale); }, []);
@@ -143,7 +145,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     "color-primary": theme.colors.primary, "color-background": theme.colors.background, "color-surface": theme.colors.surface, "color-foreground": theme.colors.text, "color-muted": theme.colors.muted, "color-border": theme.colors.border, "color-success": theme.colors.primary, "color-warning": theme.colors.secondary, "color-error": theme.colors.accent,
   }), [theme]);
   const textScaleMultiplier = TEXT_SCALE_MULTIPLIERS[textScale];
-  const value = useMemo(() => ({ theme, themeId, setThemeId, interfaceDensity, setInterfaceDensity, textScale, textScaleMultiplier, setTextScale, followSystemAppearance, setFollowSystemAppearance, colorScheme, setColorScheme, locale, setLocale, favoriteCardPreferences, setFavoriteCardPreferences, resetFavoriteCardPreferences, onboardingSeen, preferencesReady: ready, completeOnboarding, skipOnboarding, resetOnboarding, isRTL: direction === "rtl", direction, t }), [colorScheme, completeOnboarding, direction, favoriteCardPreferences, followSystemAppearance, interfaceDensity, locale, onboardingSeen, ready, resetFavoriteCardPreferences, resetOnboarding, setColorScheme, setFavoriteCardPreferences, setFollowSystemAppearance, setInterfaceDensity, setLocale, setTextScale, setThemeId, skipOnboarding, t, textScale, textScaleMultiplier, theme, themeId]);
+  const value = useMemo(() => ({ theme, themeId, setThemeId, interfaceDensity, setInterfaceDensity, textScale, textScaleMultiplier, setTextScale, resetAccessibilityPreferences, followSystemAppearance, setFollowSystemAppearance, colorScheme, setColorScheme, locale, setLocale, favoriteCardPreferences, setFavoriteCardPreferences, resetFavoriteCardPreferences, onboardingSeen, preferencesReady: ready, completeOnboarding, skipOnboarding, resetOnboarding, isRTL: direction === "rtl", direction, t }), [colorScheme, completeOnboarding, direction, favoriteCardPreferences, followSystemAppearance, interfaceDensity, locale, onboardingSeen, ready, resetAccessibilityPreferences, resetFavoriteCardPreferences, resetOnboarding, setColorScheme, setFavoriteCardPreferences, setFollowSystemAppearance, setInterfaceDensity, setLocale, setTextScale, setThemeId, skipOnboarding, t, textScale, textScaleMultiplier, theme, themeId]);
 
   return <ThemeContext.Provider value={value}><View style={[{ flex: 1, backgroundColor: theme.colors.background }, themeVariables]}>{children}</View></ThemeContext.Provider>;
 }
