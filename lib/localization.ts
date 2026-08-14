@@ -9,7 +9,7 @@ export const LOCALE_META: Record<AppLocale, { nativeName: string; label: string;
 };
 
 const ar = {
-  textPreviewTitle: "معاينة القراءة", textPreviewBody: "تظل عناوين المسارات والشرح واضحة على هذا الجهاز.", resetAccessibility: "إعادة ضبط الإتاحة", resetAccessibilityHint: "استعادة كثافة الواجهة المريحة وحجم النص القياسي فقط.",
+  highContrast: "تباين عالٍ", highContrastHint: "يرفع وضوح النص والحدود وحالات الاختيار على هذا الجهاز.", textPreviewTitle: "معاينة القراءة", textPreviewBody: "تظل عناوين المسارات والشرح واضحة على هذا الجهاز.", resetAccessibility: "إعادة ضبط الإتاحة", resetAccessibilityHint: "استعادة الكثافة المريحة والنص القياسي وإيقاف التباين العالي فقط.",
   textSize: "حجم النص", textSizeHint: "اضبط قراءة الواجهة على هذا الجهاز من دون تغيير حجم خط النظام.", textScaleStandard: "قياسي", textScaleLarge: "كبير", textScaleExtraLarge: "كبير جدًا",
   appearanceDensity: "كثافة الواجهة", densityComfortable: "مريح", densityCompact: "مضغوط", densityComfortableHint: "مساحة قراءة أوسع وأزرار أكثر راحة.", densityCompactHint: "عناصر أقرب لرؤية محتوى أكثر.", systemAppearance: "مطابقة مظهر النظام", systemAppearanceHint: "يتحول بين Aurora وPearl وفق وضع الجهاز. اختيار ثيم يدوي يوقف المطابقة.", themeCloudHint: "أبيض صافٍ ولمسة سماوية لقراءة هادئة.", themeTidalHint: "أزرق سماوي منعش لجلسة نابضة.", themePorcelainHint: "أوف وايت دافئ لسطح ناعم.",
   themePaletteHint: "لوحات محلية عالية الوضوح", themeCloud: "سحابي", themeTidal: "مدّ سماوي", themePorcelain: "بورسلان",
@@ -26,7 +26,7 @@ const ar = {
 };
 
 const en: typeof ar = {
-  textPreviewTitle: "Reading preview", textPreviewBody: "Track titles and supporting copy stay clear on this device.", resetAccessibility: "Reset accessibility", resetAccessibilityHint: "Restore only comfortable density and standard text size.",
+  highContrast: "High contrast", highContrastHint: "Raises the clarity of text, borders, and selection states on this device.", textPreviewTitle: "Reading preview", textPreviewBody: "Track titles and supporting copy stay clear on this device.", resetAccessibility: "Reset accessibility", resetAccessibilityHint: "Restore comfortable density, standard text, and high contrast off only.",
   textSize: "Text size", textSizeHint: "Adjust in-app reading on this device without changing the system font size.", textScaleStandard: "Standard", textScaleLarge: "Large", textScaleExtraLarge: "Extra large",
   appearanceDensity: "Interface density", densityComfortable: "Comfortable", densityCompact: "Compact", densityComfortableHint: "More reading space and easier touch targets.", densityCompactHint: "Closer controls to show more content.", systemAppearance: "Match system appearance", systemAppearanceHint: "Uses Aurora or Pearl for the device setting. Choosing a theme turns this off.", themeCloudHint: "Crisp white with a calm sky accent.", themeTidalHint: "Fresh sky blue for an energized session.", themePorcelainHint: "Warm off-white for a soft surface.",
   themePaletteHint: "High-clarity local palettes", themeCloud: "Cloud", themeTidal: "Tidal", themePorcelain: "Porcelain",
@@ -44,7 +44,7 @@ const en: typeof ar = {
 };
 
 const fr: typeof ar = {
-  textPreviewTitle: "Aperçu de lecture", textPreviewBody: "Les titres et textes d’aide restent clairs sur cet appareil.", resetAccessibility: "Réinitialiser l’accessibilité", resetAccessibilityHint: "Restaure uniquement la densité confortable et le texte standard.",
+  highContrast: "Contraste élevé", highContrastHint: "Renforce la lisibilité du texte, des bordures et des sélections sur cet appareil.", textPreviewTitle: "Aperçu de lecture", textPreviewBody: "Les titres et textes d’aide restent clairs sur cet appareil.", resetAccessibility: "Réinitialiser l’accessibilité", resetAccessibilityHint: "Restaure uniquement la densité confortable, le texte standard et désactive le contraste élevé.",
   textSize: "Taille du texte", textSizeHint: "Ajustez la lecture dans l’appareil sans modifier la taille système.", textScaleStandard: "Standard", textScaleLarge: "Grand", textScaleExtraLarge: "Très grand",
   appearanceDensity: "Densité de l’interface", densityComfortable: "Confortable", densityCompact: "Compacte", densityComfortableHint: "Plus d’espace de lecture et des cibles plus faciles.", densityCompactHint: "Des commandes rapprochées pour afficher plus de contenu.", systemAppearance: "Suivre l’apparence du système", systemAppearanceHint: "Utilise Aurora ou Perle selon l’appareil. Choisir un thème désactive ce suivi.", themeCloudHint: "Blanc net et touche bleu ciel apaisante.", themeTidalHint: "Bleu ciel frais pour une session dynamique.", themePorcelainHint: "Blanc cassé chaud pour une surface douce.",
   themePaletteHint: "Palettes locales très lisibles", themeCloud: "Nuage", themeTidal: "Marée", themePorcelain: "Porcelaine",
@@ -62,7 +62,7 @@ const fr: typeof ar = {
 };
 
 const es: typeof ar = {
-  textPreviewTitle: "Vista previa de lectura", textPreviewBody: "Los títulos y textos de apoyo se mantienen claros en este dispositivo.", resetAccessibility: "Restablecer accesibilidad", resetAccessibilityHint: "Restaura solo la densidad cómoda y el texto estándar.",
+  highContrast: "Alto contraste", highContrastHint: "Eleva la claridad del texto, los bordes y los estados seleccionados en este dispositivo.", textPreviewTitle: "Vista previa de lectura", textPreviewBody: "Los títulos y textos de apoyo se mantienen claros en este dispositivo.", resetAccessibility: "Restablecer accesibilidad", resetAccessibilityHint: "Restaura solo la densidad cómoda, el texto estándar y desactiva el alto contraste.",
   textSize: "Tamaño del texto", textSizeHint: "Ajusta la lectura en la aplicación sin cambiar el tamaño del sistema.", textScaleStandard: "Estándar", textScaleLarge: "Grande", textScaleExtraLarge: "Muy grande",
   appearanceDensity: "Densidad de la interfaz", densityComfortable: "Cómoda", densityCompact: "Compacta", densityComfortableHint: "Más espacio de lectura y objetivos táctiles cómodos.", densityCompactHint: "Controles más juntos para ver más contenido.", systemAppearance: "Usar apariencia del sistema", systemAppearanceHint: "Usa Aurora o Perla según el dispositivo. Elegir un tema lo desactiva.", themeCloudHint: "Blanco nítido con un acento cielo sereno.", themeTidalHint: "Azul cielo fresco para una sesión dinámica.", themePorcelainHint: "Blanco roto cálido para una superficie suave.",
   themePaletteHint: "Paletas locales de alta claridad", themeCloud: "Nube", themeTidal: "Marea", themePorcelain: "Porcelana",
