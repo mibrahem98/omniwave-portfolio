@@ -32,7 +32,7 @@ The export flow exposes quick date ranges, a content preview, field selection, f
 
 ![OmniWave settings with language choices, Aurora dark mode, and theme controls](docs/assets/settings-view.png)
 
-The settings experience combines four localized languages, eight saved themes with concise palette guidance, an explicit Aurora dark-mode switch, optional system-appearance matching, local comfortable or compact reading density, and standard, large, or extra-large in-app text.
+The settings experience combines four localized languages, eight saved themes with concise palette guidance, an explicit Aurora dark-mode switch, optional system-appearance matching, local comfortable or compact reading density, and standard, large, or extra-large in-app text with an immediate reading preview and a limited accessibility reset.
 
 ## Portfolio highlights
 
