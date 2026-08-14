@@ -7,7 +7,7 @@ import type { ColorScheme } from "@/constants/theme";
 import { isAppLocale, LOCALE_META, TRANSLATIONS, type AppLocale, type TranslationKey } from "@/lib/localization";
 import type { FavoriteCardColor, FavoriteCardPreferences, FavoriteCardStyle } from "@/lib/omniwave/types";
 
-export type AppThemeId = "aurora" | "midnight" | "pearl" | "velvet" | "sunset";
+export type AppThemeId = "aurora" | "midnight" | "pearl" | "velvet" | "sunset" | "cloud" | "tidal" | "porcelain";
 export type AppThemeColors = { background: string; surface: string; surfaceMuted: string; text: string; muted: string; border: string; primary: string; secondary: string; accent: string; glow: string; onPrimary: string };
 export type AppTheme = { id: AppThemeId; isDark: boolean; colors: AppThemeColors };
 
@@ -17,6 +17,9 @@ export const APP_THEMES: Record<AppThemeId, AppTheme> = {
   pearl: { id: "pearl", isDark: false, colors: { background: "#F7F8F6", surface: "#FFFFFF", surfaceMuted: "#EDF1EE", text: "#15201C", muted: "#61736B", border: "#D9E2DC", primary: "#148B69", secondary: "#7663C7", accent: "#CA4E78", glow: "#D8F0E7", onPrimary: "#F6FFFB" } },
   velvet: { id: "velvet", isDark: true, colors: { background: "#120A18", surface: "#21132B", surfaceMuted: "#191020", text: "#FFF8FE", muted: "#C3AAC5", border: "#3E284A", primary: "#E888D1", secondary: "#A78BFA", accent: "#FFAC67", glow: "#3B1E41", onPrimary: "#280B21" } },
   sunset: { id: "sunset", isDark: true, colors: { background: "#171009", surface: "#261B12", surfaceMuted: "#1E150E", text: "#FFF8F0", muted: "#C8B29B", border: "#4A3320", primary: "#F9B75D", secondary: "#F7797D", accent: "#84DCC6", glow: "#4B2D18", onPrimary: "#2A1904" } },
+  cloud: { id: "cloud", isDark: false, colors: { background: "#F8FBFF", surface: "#FFFFFF", surfaceMuted: "#EDF5FF", text: "#10243A", muted: "#5C7187", border: "#D8E8F6", primary: "#2A7EC7", secondary: "#66B9EA", accent: "#6076D9", glow: "#DDECFA", onPrimary: "#FFFFFF" } },
+  tidal: { id: "tidal", isDark: false, colors: { background: "#F2FBFF", surface: "#FEFFFF", surfaceMuted: "#E5F5FA", text: "#113445", muted: "#53737F", border: "#CBE6EF", primary: "#147FA5", secondary: "#6DCFE4", accent: "#3E8DCC", glow: "#D9F4F9", onPrimary: "#FFFFFF" } },
+  porcelain: { id: "porcelain", isDark: false, colors: { background: "#FBF8F2", surface: "#FFFFFC", surfaceMuted: "#F2EEE6", text: "#2A2C2A", muted: "#6C706B", border: "#E3DDD2", primary: "#407E9C", secondary: "#88BBD1", accent: "#8A6BA9", glow: "#EEF1EB", onPrimary: "#FFFFFF" } },
 };
 
 const PREFERENCES_KEY = "omniwave:ui-preferences:v2";
@@ -36,6 +39,7 @@ type ThemeContextValue = {
   onboardingSeen: boolean;
   preferencesReady: boolean;
   completeOnboarding: () => void;
+  skipOnboarding: () => void;
   resetOnboarding: () => void;
   isRTL: boolean;
   direction: "rtl" | "ltr";
@@ -99,13 +103,14 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const setFavoriteCardPreferences = useCallback((nextPreferences: FavoriteCardPreferences) => { setFavoriteCardPreferencesState(sanitizeFavoriteCardPreferences(nextPreferences)); setIsFavoriteCardCustomized(true); }, []);
   const resetFavoriteCardPreferences = useCallback(() => { setFavoriteCardPreferencesState(DEFAULT_FAVORITE_CARD_PREFERENCES); setIsFavoriteCardCustomized(false); }, []);
   const completeOnboarding = useCallback(() => setOnboardingSeen(true), []);
+  const skipOnboarding = useCallback(() => setOnboardingSeen(true), []);
   const resetOnboarding = useCallback(() => setOnboardingSeen(false), []);
   const t = useCallback((key: TranslationKey) => TRANSLATIONS[locale][key] as string, [locale]);
 
   const themeVariables = useMemo(() => vars({
     "color-primary": theme.colors.primary, "color-background": theme.colors.background, "color-surface": theme.colors.surface, "color-foreground": theme.colors.text, "color-muted": theme.colors.muted, "color-border": theme.colors.border, "color-success": theme.colors.primary, "color-warning": theme.colors.secondary, "color-error": theme.colors.accent,
   }), [theme]);
-  const value = useMemo(() => ({ theme, themeId, setThemeId, colorScheme, setColorScheme, locale, setLocale, favoriteCardPreferences, setFavoriteCardPreferences, resetFavoriteCardPreferences, onboardingSeen, preferencesReady: ready, completeOnboarding, resetOnboarding, isRTL: direction === "rtl", direction, t }), [colorScheme, completeOnboarding, direction, favoriteCardPreferences, locale, onboardingSeen, ready, resetFavoriteCardPreferences, resetOnboarding, setColorScheme, setFavoriteCardPreferences, setLocale, setThemeId, t, theme, themeId]);
+  const value = useMemo(() => ({ theme, themeId, setThemeId, colorScheme, setColorScheme, locale, setLocale, favoriteCardPreferences, setFavoriteCardPreferences, resetFavoriteCardPreferences, onboardingSeen, preferencesReady: ready, completeOnboarding, skipOnboarding, resetOnboarding, isRTL: direction === "rtl", direction, t }), [colorScheme, completeOnboarding, direction, favoriteCardPreferences, locale, onboardingSeen, ready, resetFavoriteCardPreferences, resetOnboarding, setColorScheme, setFavoriteCardPreferences, setLocale, setThemeId, skipOnboarding, t, theme, themeId]);
 
   return <ThemeContext.Provider value={value}><View style={[{ flex: 1, backgroundColor: theme.colors.background }, themeVariables]}>{children}</View></ThemeContext.Provider>;
 }
