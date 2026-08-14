@@ -219,6 +219,24 @@ describe("OmniWave navigation and settings contract", () => {
     }
   });
 
+  it("keeps contrast preview, validated accent choices, and metadata review reading scale local", () => {
+    const themeProvider = read("lib/theme-provider.tsx");
+    const settings = read("app/(tabs)/settings.tsx");
+    const metadataReview = read("app/(tabs)/metadata-review.tsx");
+    const localization = read("lib/localization.ts");
+    expect(themeProvider).toContain("HighContrastAccent");
+    expect(themeProvider).toContain("isHighContrastAccent");
+    expect(themeProvider).toContain("highContrastAccent");
+    expect(themeProvider).toContain("setHighContrastAccent");
+    expect(settings).toContain('t("highContrastPreview")');
+    expect(settings).toContain("HIGH_CONTRAST_ACCENTS");
+    expect(settings).toContain('accessibilityRole="radio"');
+    expect(metadataReview).toContain("textScaleMultiplier");
+    for (const key of ["highContrastPreview", "highContrastAccent", "highContrastAccentTeal", "highContrastAccentViolet", "highContrastAccentAmber"]) {
+      expect(localization).toContain(key);
+    }
+  });
+
   it("keeps respectful community standards connected to the public contribution path", () => {
     const codeOfConduct = read("CODE_OF_CONDUCT.md");
     const readme = read("README.md");
