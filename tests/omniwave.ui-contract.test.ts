@@ -197,6 +197,28 @@ describe("OmniWave navigation and settings contract", () => {
     }
   });
 
+  it("keeps high contrast local, queue reading scaled, and accessibility feedback motion reduced-motion aware", () => {
+    const themeProvider = read("lib/theme-provider.tsx");
+    const settings = read("app/(tabs)/settings.tsx");
+    const tools = read("app/(tabs)/tools.tsx");
+    const profile = read("app/(tabs)/profile.tsx");
+    const feedback = read("components/omniwave/accessibility-feedback.tsx");
+    const localization = read("lib/localization.ts");
+    expect(themeProvider).toContain("withHighContrast");
+    expect(themeProvider).toContain("highContrast");
+    expect(themeProvider).toContain("setHighContrast");
+    expect(settings).toContain('t("highContrast")');
+    expect(settings).toContain("AccessibilityFeedback");
+    expect(settings).toContain("onScrollBeginDrag");
+    expect(tools).toContain("textScaleMultiplier");
+    expect(profile).toContain("TrackRow");
+    expect(feedback).toContain("reduceMotionChanged");
+    expect(feedback).toContain("pulseKey");
+    for (const key of ["highContrast", "highContrastHint"]) {
+      expect(localization).toContain(key);
+    }
+  });
+
   it("keeps respectful community standards connected to the public contribution path", () => {
     const codeOfConduct = read("CODE_OF_CONDUCT.md");
     const readme = read("README.md");
