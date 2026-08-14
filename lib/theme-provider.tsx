@@ -27,7 +27,7 @@ export const APP_THEMES: Record<AppThemeId, AppTheme> = {
 
 const PREFERENCES_KEY = "omniwave:ui-preferences:v2";
 const DEFAULT_FAVORITE_CARD_PREFERENCES: FavoriteCardPreferences = { style: "glass", color: "teal" };
-type StoredPreferences = { locale?: unknown; themeId?: unknown; favoriteCard?: unknown; onboardingSeen?: unknown; interfaceDensity?: unknown; followSystemAppearance?: unknown; textScale?: unknown };
+type StoredPreferences = { locale?: unknown; themeId?: unknown; favoriteCard?: unknown; onboardingSeen?: unknown; interfaceDensity?: unknown; followSystemAppearance?: unknown; textScale?: unknown; highContrast?: unknown };
 type ThemeContextValue = {
   theme: AppTheme;
   themeId: AppThemeId;
@@ -38,6 +38,8 @@ type ThemeContextValue = {
   textScaleMultiplier: number;
   setTextScale: (scale: TextScale) => void;
   resetAccessibilityPreferences: () => void;
+  highContrast: boolean;
+  setHighContrast: (enabled: boolean) => void;
   followSystemAppearance: boolean;
   setFollowSystemAppearance: (enabled: boolean) => void;
   colorScheme: ColorScheme;
@@ -66,18 +68,21 @@ const getSystemThemeId = (): AppThemeId => getSystemColorScheme() === "dark" ? "
 const isFavoriteCardStyle = (value: unknown): value is FavoriteCardStyle => value === "glass" || value === "editorial" || value === "minimal";
 const isFavoriteCardColor = (value: unknown): value is FavoriteCardColor => value === "teal" || value === "violet" || value === "rose";
 const sanitizeFavoriteCardPreferences = (value: unknown): FavoriteCardPreferences => typeof value === "object" && value !== null && isFavoriteCardStyle((value as Record<string, unknown>).style) && isFavoriteCardColor((value as Record<string, unknown>).color) ? { style: (value as Record<string, FavoriteCardStyle>).style, color: (value as Record<string, FavoriteCardColor>).color } : DEFAULT_FAVORITE_CARD_PREFERENCES;
+const withHighContrast = (baseTheme: AppTheme): AppTheme => ({ ...baseTheme, colors: baseTheme.isDark ? { ...baseTheme.colors, background: "#000000", surface: "#101010", surfaceMuted: "#1B1B1B", text: "#FFFFFF", muted: "#F2F2F2", border: "#FFFFFF", primary: "#39F2D0", secondary: "#D1C4FF", accent: "#FFC0D4", glow: "#174B43", onPrimary: "#000000" } : { ...baseTheme.colors, background: "#FFFFFF", surface: "#FFFFFF", surfaceMuted: "#F4F4F4", text: "#000000", muted: "#1E1E1E", border: "#111111", primary: "#005C43", secondary: "#40258B", accent: "#9B0040", glow: "#D5EAE3", onPrimary: "#FFFFFF" } });
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [themeId, setThemeIdState] = useState<AppThemeId>(getSystemThemeId);
   const [interfaceDensity, setInterfaceDensityState] = useState<InterfaceDensity>("comfortable");
   const [textScale, setTextScaleState] = useState<TextScale>("standard");
+  const [highContrast, setHighContrastState] = useState(false);
   const [followSystemAppearance, setFollowSystemAppearanceState] = useState(true);
   const [locale, setLocaleState] = useState<AppLocale>("ar");
   const [favoriteCardPreferences, setFavoriteCardPreferencesState] = useState<FavoriteCardPreferences>(DEFAULT_FAVORITE_CARD_PREFERENCES);
   const [isFavoriteCardCustomized, setIsFavoriteCardCustomized] = useState(false);
   const [onboardingSeen, setOnboardingSeen] = useState(false);
   const [ready, setReady] = useState(false);
-  const theme = APP_THEMES[themeId];
+  const baseTheme = APP_THEMES[themeId];
+  const theme = highContrast ? withHighContrast(baseTheme) : baseTheme;
   const colorScheme: ColorScheme = theme.isDark ? "dark" : "light";
   const direction = LOCALE_META[locale].direction;
 
@@ -93,6 +98,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
         else if (isThemeId(stored.themeId)) setThemeIdState(stored.themeId);
         if (isInterfaceDensity(stored.interfaceDensity)) setInterfaceDensityState(stored.interfaceDensity);
         if (isTextScale(stored.textScale)) setTextScaleState(stored.textScale);
+        if (typeof stored.highContrast === "boolean") setHighContrastState(stored.highContrast);
         if (isAppLocale(stored.locale)) setLocaleState(stored.locale);
         const restoredCard = sanitizeFavoriteCardPreferences(stored.favoriteCard);
         setFavoriteCardPreferencesState(restoredCard);
@@ -123,14 +129,15 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (!ready) return;
-    const saved = { locale, themeId, interfaceDensity, textScale, followSystemAppearance, ...(isFavoriteCardCustomized ? { favoriteCard: favoriteCardPreferences } : {}), ...(onboardingSeen ? { onboardingSeen: true } : {}) };
+    const saved = { locale, themeId, interfaceDensity, textScale, highContrast, followSystemAppearance, ...(isFavoriteCardCustomized ? { favoriteCard: favoriteCardPreferences } : {}), ...(onboardingSeen ? { onboardingSeen: true } : {}) };
     void AsyncStorage.setItem(PREFERENCES_KEY, JSON.stringify(saved)).catch(() => undefined);
-  }, [favoriteCardPreferences, followSystemAppearance, interfaceDensity, isFavoriteCardCustomized, locale, onboardingSeen, ready, textScale, themeId]);
+  }, [favoriteCardPreferences, followSystemAppearance, highContrast, interfaceDensity, isFavoriteCardCustomized, locale, onboardingSeen, ready, textScale, themeId]);
 
   const setThemeId = useCallback((nextThemeId: AppThemeId) => { if (isThemeId(nextThemeId)) { setFollowSystemAppearanceState(false); setThemeIdState(nextThemeId); } }, []);
   const setInterfaceDensity = useCallback((nextDensity: InterfaceDensity) => { if (isInterfaceDensity(nextDensity)) setInterfaceDensityState(nextDensity); }, []);
   const setTextScale = useCallback((nextScale: TextScale) => { if (isTextScale(nextScale)) setTextScaleState(nextScale); }, []);
-  const resetAccessibilityPreferences = useCallback(() => { setInterfaceDensityState("comfortable"); setTextScaleState("standard"); }, []);
+  const resetAccessibilityPreferences = useCallback(() => { setInterfaceDensityState("comfortable"); setTextScaleState("standard"); setHighContrastState(false); }, []);
+  const setHighContrast = useCallback((enabled: boolean) => setHighContrastState(Boolean(enabled)), []);
   const setFollowSystemAppearance = useCallback((enabled: boolean) => { setFollowSystemAppearanceState(enabled); if (enabled) { Appearance.setColorScheme?.(null); setThemeIdState(getSystemThemeId()); } }, []);
   const setColorScheme = useCallback((scheme: ColorScheme) => { setFollowSystemAppearanceState(false); setThemeIdState(scheme === "light" ? "pearl" : "aurora"); }, []);
   const setLocale = useCallback((nextLocale: AppLocale) => { if (isAppLocale(nextLocale)) setLocaleState(nextLocale); }, []);
@@ -145,7 +152,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     "color-primary": theme.colors.primary, "color-background": theme.colors.background, "color-surface": theme.colors.surface, "color-foreground": theme.colors.text, "color-muted": theme.colors.muted, "color-border": theme.colors.border, "color-success": theme.colors.primary, "color-warning": theme.colors.secondary, "color-error": theme.colors.accent,
   }), [theme]);
   const textScaleMultiplier = TEXT_SCALE_MULTIPLIERS[textScale];
-  const value = useMemo(() => ({ theme, themeId, setThemeId, interfaceDensity, setInterfaceDensity, textScale, textScaleMultiplier, setTextScale, resetAccessibilityPreferences, followSystemAppearance, setFollowSystemAppearance, colorScheme, setColorScheme, locale, setLocale, favoriteCardPreferences, setFavoriteCardPreferences, resetFavoriteCardPreferences, onboardingSeen, preferencesReady: ready, completeOnboarding, skipOnboarding, resetOnboarding, isRTL: direction === "rtl", direction, t }), [colorScheme, completeOnboarding, direction, favoriteCardPreferences, followSystemAppearance, interfaceDensity, locale, onboardingSeen, ready, resetAccessibilityPreferences, resetFavoriteCardPreferences, resetOnboarding, setColorScheme, setFavoriteCardPreferences, setFollowSystemAppearance, setInterfaceDensity, setLocale, setTextScale, setThemeId, skipOnboarding, t, textScale, textScaleMultiplier, theme, themeId]);
+  const value = useMemo(() => ({ theme, themeId, setThemeId, interfaceDensity, setInterfaceDensity, textScale, textScaleMultiplier, setTextScale, resetAccessibilityPreferences, highContrast, setHighContrast, followSystemAppearance, setFollowSystemAppearance, colorScheme, setColorScheme, locale, setLocale, favoriteCardPreferences, setFavoriteCardPreferences, resetFavoriteCardPreferences, onboardingSeen, preferencesReady: ready, completeOnboarding, skipOnboarding, resetOnboarding, isRTL: direction === "rtl", direction, t }), [colorScheme, completeOnboarding, direction, favoriteCardPreferences, followSystemAppearance, highContrast, interfaceDensity, locale, onboardingSeen, ready, resetAccessibilityPreferences, resetFavoriteCardPreferences, resetOnboarding, setColorScheme, setFavoriteCardPreferences, setFollowSystemAppearance, setHighContrast, setInterfaceDensity, setLocale, setTextScale, setThemeId, skipOnboarding, t, textScale, textScaleMultiplier, theme, themeId]);
 
   return <ThemeContext.Provider value={value}><View style={[{ flex: 1, backgroundColor: theme.colors.background }, themeVariables]}>{children}</View></ThemeContext.Provider>;
 }
