@@ -153,6 +153,31 @@ describe("OmniWave navigation and settings contract", () => {
     }
   });
 
+  it("keeps local text scale, compact listening layouts, and reduced-motion appearance transitions", () => {
+    const themeProvider = read("lib/theme-provider.tsx");
+    const settings = read("app/(tabs)/settings.tsx");
+    const library = read("app/(tabs)/library.tsx");
+    const nowPlaying = read("app/(tabs)/now-playing.tsx");
+    const trackRow = read("components/omniwave/track-row.tsx");
+    const transition = read("components/omniwave/appearance-transition.tsx");
+    const rootLayout = read("app/_layout.tsx");
+    const localization = read("lib/localization.ts");
+    expect(themeProvider).toContain("TextScale");
+    expect(themeProvider).toContain("TEXT_SCALE_MULTIPLIERS");
+    expect(themeProvider).toContain("setTextScale");
+    expect(settings).toContain("TEXT_SCALES");
+    expect(settings).toContain('t("textSize")');
+    expect(library).toContain("contentCompact");
+    expect(nowPlaying).toContain("coverCompact");
+    expect(trackRow).toContain("rowCompact");
+    expect(transition).toContain("reduceMotionChanged");
+    expect(transition).toContain("interfaceDensity");
+    expect(rootLayout).toContain("AppearanceTransition");
+    for (const key of ["textSize", "textScaleStandard", "textScaleLarge", "textScaleExtraLarge"]) {
+      expect(localization).toContain(key);
+    }
+  });
+
   it("keeps respectful community standards connected to the public contribution path", () => {
     const codeOfConduct = read("CODE_OF_CONDUCT.md");
     const readme = read("README.md");
