@@ -6,14 +6,18 @@ import { colorScheme as nativewindColorScheme, vars } from "nativewind";
 import type { ColorScheme } from "@/constants/theme";
 import { isAppLocale, LOCALE_META, TRANSLATIONS, type AppLocale, type TranslationKey } from "@/lib/localization";
 import type { FavoriteCardColor, FavoriteCardPreferences, FavoriteCardStyle } from "@/lib/omniwave/types";
+import { setHapticFeedbackEnabled as configureHapticFeedback } from "@/lib/omniwave/haptics";
 
 export type AppThemeId = "aurora" | "midnight" | "pearl" | "velvet" | "sunset" | "cloud" | "tidal" | "porcelain";
+export const QUICK_ACCESS_IDS = ["favorites", "playlists", "videos"] as const;
+export type QuickAccessId = (typeof QUICK_ACCESS_IDS)[number];
 export type InterfaceDensity = "comfortable" | "compact";
 export type TextScale = "standard" | "large" | "extraLarge";
 export type HighContrastAccent = "teal" | "violet" | "amber";
 export type FontWeightPreference = "regular" | "medium" | "bold";
 export type LineSpacingPreference = "standard" | "relaxed" | "spacious";
 export type ReadingFontPreference = "system" | "dyslexia";
+export type FloatingShortcutPosition = { x: number; y: number };
 export const TEXT_SCALE_MULTIPLIERS: Record<TextScale, number> = { standard: 1, large: 1.15, extraLarge: 1.3 };
 export const FONT_WEIGHT_VALUES: Record<FontWeightPreference, "400" | "600" | "700"> = { regular: "400", medium: "600", bold: "700" };
 export const LINE_HEIGHT_MULTIPLIERS: Record<LineSpacingPreference, number> = { standard: 1, relaxed: 1.25, spacious: 1.45 };
@@ -33,11 +37,20 @@ export const APP_THEMES: Record<AppThemeId, AppTheme> = {
 
 const PREFERENCES_KEY = "omniwave:ui-preferences:v2";
 const DEFAULT_FAVORITE_CARD_PREFERENCES: FavoriteCardPreferences = { style: "glass", color: "teal" };
-type StoredPreferences = { locale?: unknown; themeId?: unknown; favoriteCard?: unknown; onboardingSeen?: unknown; interfaceDensity?: unknown; followSystemAppearance?: unknown; textScale?: unknown; fontWeight?: unknown; lineSpacing?: unknown; readingFont?: unknown; highContrast?: unknown; highContrastAccent?: unknown };
+type StoredPreferences = { locale?: unknown; themeId?: unknown; favoriteCard?: unknown; onboardingSeen?: unknown; interfaceDensity?: unknown; followSystemAppearance?: unknown; textScale?: unknown; fontWeight?: unknown; lineSpacing?: unknown; readingFont?: unknown; highContrast?: unknown; highContrastAccent?: unknown; quickAccessOrder?: unknown; quickAccessHintSeen?: unknown; hapticFeedbackEnabled?: unknown; appearanceShortcutEnabled?: unknown; appearanceShortcutPosition?: unknown };
 type ThemeContextValue = {
   theme: AppTheme;
   themeId: AppThemeId;
   setThemeId: (themeId: AppThemeId) => void;
+  quickAccessOrder: QuickAccessId[];
+  setQuickAccessOrder: (order: readonly QuickAccessId[]) => void;
+  resetQuickAccessOrder: () => void;
+  canUndoQuickAccessOrder: boolean;
+  undoQuickAccessOrder: () => void;
+  quickAccessHintSeen: boolean;
+  dismissQuickAccessHint: () => void;
+  hapticFeedbackEnabled: boolean;
+  setHapticFeedbackEnabled: (enabled: boolean) => void;
   interfaceDensity: InterfaceDensity;
   setInterfaceDensity: (density: InterfaceDensity) => void;
   textScale: TextScale;
@@ -59,6 +72,10 @@ type ThemeContextValue = {
   setHighContrastAccent: (accent: HighContrastAccent) => void;
   followSystemAppearance: boolean;
   setFollowSystemAppearance: (enabled: boolean) => void;
+  appearanceShortcutEnabled: boolean;
+  setAppearanceShortcutEnabled: (enabled: boolean) => void;
+  appearanceShortcutPosition: FloatingShortcutPosition;
+  setAppearanceShortcutPosition: (position: FloatingShortcutPosition) => void;
   colorScheme: ColorScheme;
   setColorScheme: (scheme: ColorScheme) => void;
   locale: AppLocale;
@@ -78,12 +95,26 @@ type ThemeContextValue = {
 
 const ThemeContext = createContext<ThemeContextValue | null>(null);
 const isThemeId = (value: unknown): value is AppThemeId => typeof value === "string" && Object.prototype.hasOwnProperty.call(APP_THEMES, value);
+const isQuickAccessId = (value: unknown): value is QuickAccessId => typeof value === "string" && QUICK_ACCESS_IDS.includes(value as QuickAccessId);
+const sanitizeQuickAccessOrder = (value: unknown): QuickAccessId[] => {
+  if (!Array.isArray(value) || value.length !== QUICK_ACCESS_IDS.length || !value.every(isQuickAccessId)) return [...QUICK_ACCESS_IDS];
+  const order = value as QuickAccessId[];
+  return new Set(order).size === QUICK_ACCESS_IDS.length && QUICK_ACCESS_IDS.every((id) => order.includes(id)) ? [...order] : [...QUICK_ACCESS_IDS];
+};
+const sameQuickAccessOrder = (left: readonly QuickAccessId[], right: readonly QuickAccessId[]) => left.length === right.length && left.every((id, index) => id === right[index]);
 const isInterfaceDensity = (value: unknown): value is InterfaceDensity => value === "comfortable" || value === "compact";
 const isTextScale = (value: unknown): value is TextScale => value === "standard" || value === "large" || value === "extraLarge";
 const isFontWeightPreference = (value: unknown): value is FontWeightPreference => value === "regular" || value === "medium" || value === "bold";
 const isLineSpacingPreference = (value: unknown): value is LineSpacingPreference => value === "standard" || value === "relaxed" || value === "spacious";
 const isReadingFontPreference = (value: unknown): value is ReadingFontPreference => value === "system" || value === "dyslexia";
 const isHighContrastAccent = (value: unknown): value is HighContrastAccent => value === "teal" || value === "violet" || value === "amber";
+const DEFAULT_FLOATING_SHORTCUT_POSITION: FloatingShortcutPosition = { x: 1, y: 1 };
+const sanitizeFloatingShortcutPosition = (value: unknown): FloatingShortcutPosition => {
+  if (typeof value !== "object" || value === null || Array.isArray(value)) return DEFAULT_FLOATING_SHORTCUT_POSITION;
+  const candidate = value as Record<string, unknown>;
+  if (!Number.isFinite(candidate.x) || !Number.isFinite(candidate.y)) return DEFAULT_FLOATING_SHORTCUT_POSITION;
+  return { x: Math.max(0, Math.min(1, Number(candidate.x))), y: Math.max(0, Math.min(1, Number(candidate.y))) };
+};
 const getSystemColorScheme = (): ColorScheme => Appearance.getColorScheme() === "dark" ? "dark" : "light";
 const getSystemThemeId = (): AppThemeId => getSystemColorScheme() === "dark" ? "aurora" : "pearl";
 const isFavoriteCardStyle = (value: unknown): value is FavoriteCardStyle => value === "glass" || value === "editorial" || value === "minimal";
@@ -94,6 +125,10 @@ const withHighContrast = (baseTheme: AppTheme, accent: HighContrastAccent): AppT
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [themeId, setThemeIdState] = useState<AppThemeId>(getSystemThemeId);
+  const [quickAccessOrder, setQuickAccessOrderState] = useState<QuickAccessId[]>(() => [...QUICK_ACCESS_IDS]);
+  const [previousQuickAccessOrder, setPreviousQuickAccessOrder] = useState<QuickAccessId[] | null>(null);
+  const [quickAccessHintSeen, setQuickAccessHintSeen] = useState(false);
+  const [hapticFeedbackEnabled, setHapticFeedbackEnabledState] = useState(true);
   const [interfaceDensity, setInterfaceDensityState] = useState<InterfaceDensity>("comfortable");
   const [textScale, setTextScaleState] = useState<TextScale>("standard");
   const [fontWeightPreference, setFontWeightPreferenceState] = useState<FontWeightPreference>("regular");
@@ -102,6 +137,8 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [highContrast, setHighContrastState] = useState(false);
   const [highContrastAccent, setHighContrastAccentState] = useState<HighContrastAccent>("teal");
   const [followSystemAppearance, setFollowSystemAppearanceState] = useState(true);
+  const [appearanceShortcutEnabled, setAppearanceShortcutEnabledState] = useState(true);
+  const [appearanceShortcutPosition, setAppearanceShortcutPositionState] = useState<FloatingShortcutPosition>(DEFAULT_FLOATING_SHORTCUT_POSITION);
   const [locale, setLocaleState] = useState<AppLocale>("ar");
   const [favoriteCardPreferences, setFavoriteCardPreferencesState] = useState<FavoriteCardPreferences>(DEFAULT_FAVORITE_CARD_PREFERENCES);
   const [isFavoriteCardCustomized, setIsFavoriteCardCustomized] = useState(false);
@@ -122,6 +159,9 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
         setFollowSystemAppearanceState(restoredFollowSystem);
         if (restoredFollowSystem) setThemeIdState(getSystemThemeId());
         else if (isThemeId(stored.themeId)) setThemeIdState(stored.themeId);
+        setQuickAccessOrderState(sanitizeQuickAccessOrder(stored.quickAccessOrder));
+        setQuickAccessHintSeen(stored.quickAccessHintSeen === true);
+        if (typeof stored.hapticFeedbackEnabled === "boolean") { setHapticFeedbackEnabledState(stored.hapticFeedbackEnabled); configureHapticFeedback(stored.hapticFeedbackEnabled); }
         if (isInterfaceDensity(stored.interfaceDensity)) setInterfaceDensityState(stored.interfaceDensity);
         if (isTextScale(stored.textScale)) setTextScaleState(stored.textScale);
         if (isFontWeightPreference(stored.fontWeight)) setFontWeightPreferenceState(stored.fontWeight);
@@ -129,6 +169,8 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
         if (isReadingFontPreference(stored.readingFont)) setReadingFontState(stored.readingFont);
         if (typeof stored.highContrast === "boolean") setHighContrastState(stored.highContrast);
         if (isHighContrastAccent(stored.highContrastAccent)) setHighContrastAccentState(stored.highContrastAccent);
+        if (typeof stored.appearanceShortcutEnabled === "boolean") setAppearanceShortcutEnabledState(stored.appearanceShortcutEnabled);
+        setAppearanceShortcutPositionState(sanitizeFloatingShortcutPosition(stored.appearanceShortcutPosition));
         if (isAppLocale(stored.locale)) setLocaleState(stored.locale);
         const restoredCard = sanitizeFavoriteCardPreferences(stored.favoriteCard);
         setFavoriteCardPreferencesState(restoredCard);
@@ -159,11 +201,16 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (!ready) return;
-    const saved = { locale, themeId, interfaceDensity, textScale, fontWeight: fontWeightPreference, lineSpacing, readingFont, highContrast, highContrastAccent, followSystemAppearance, ...(isFavoriteCardCustomized ? { favoriteCard: favoriteCardPreferences } : {}), ...(onboardingSeen ? { onboardingSeen: true } : {}) };
+    const saved = { locale, themeId, quickAccessOrder, hapticFeedbackEnabled, interfaceDensity, textScale, fontWeight: fontWeightPreference, lineSpacing, readingFont, highContrast, highContrastAccent, followSystemAppearance, appearanceShortcutEnabled, appearanceShortcutPosition, ...(isFavoriteCardCustomized ? { favoriteCard: favoriteCardPreferences } : {}), ...(onboardingSeen ? { onboardingSeen: true } : {}), ...(quickAccessHintSeen ? { quickAccessHintSeen: true } : {}) };
     void AsyncStorage.setItem(PREFERENCES_KEY, JSON.stringify(saved)).catch(() => undefined);
-  }, [favoriteCardPreferences, followSystemAppearance, fontWeightPreference, highContrast, highContrastAccent, interfaceDensity, isFavoriteCardCustomized, lineSpacing, locale, onboardingSeen, readingFont, ready, textScale, themeId]);
+  }, [appearanceShortcutEnabled, appearanceShortcutPosition, favoriteCardPreferences, followSystemAppearance, fontWeightPreference, hapticFeedbackEnabled, highContrast, highContrastAccent, interfaceDensity, isFavoriteCardCustomized, lineSpacing, locale, onboardingSeen, quickAccessHintSeen, quickAccessOrder, readingFont, ready, textScale, themeId]);
 
   const setThemeId = useCallback((nextThemeId: AppThemeId) => { if (isThemeId(nextThemeId)) { setFollowSystemAppearanceState(false); setThemeIdState(nextThemeId); } }, []);
+  const setQuickAccessOrder = useCallback((nextOrder: readonly QuickAccessId[]) => { const next = sanitizeQuickAccessOrder(nextOrder); if (sameQuickAccessOrder(next, quickAccessOrder)) return; setPreviousQuickAccessOrder([...quickAccessOrder]); setQuickAccessOrderState(next); }, [quickAccessOrder]);
+  const resetQuickAccessOrder = useCallback(() => { const next = [...QUICK_ACCESS_IDS]; if (sameQuickAccessOrder(next, quickAccessOrder)) return; setPreviousQuickAccessOrder([...quickAccessOrder]); setQuickAccessOrderState(next); }, [quickAccessOrder]);
+  const undoQuickAccessOrder = useCallback(() => { if (!previousQuickAccessOrder) return; setQuickAccessOrderState(previousQuickAccessOrder); setPreviousQuickAccessOrder(null); }, [previousQuickAccessOrder]);
+  const dismissQuickAccessHint = useCallback(() => setQuickAccessHintSeen(true), []);
+  const setHapticFeedbackEnabled = useCallback((enabled: boolean) => { const next = Boolean(enabled); setHapticFeedbackEnabledState(next); configureHapticFeedback(next); }, []);
   const setInterfaceDensity = useCallback((nextDensity: InterfaceDensity) => { if (isInterfaceDensity(nextDensity)) setInterfaceDensityState(nextDensity); }, []);
   const setTextScale = useCallback((nextScale: TextScale) => { if (isTextScale(nextScale)) setTextScaleState(nextScale); }, []);
   const resetAccessibilityPreferences = useCallback(() => { setInterfaceDensityState("comfortable"); setTextScaleState("standard"); setFontWeightPreferenceState("regular"); setLineSpacingState("standard"); setReadingFontState("system"); setHighContrastState(false); setHighContrastAccentState("teal"); }, []);
@@ -173,6 +220,8 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const setHighContrast = useCallback((enabled: boolean) => setHighContrastState(Boolean(enabled)), []);
   const setHighContrastAccent = useCallback((accent: HighContrastAccent) => { if (isHighContrastAccent(accent)) setHighContrastAccentState(accent); }, []);
   const setFollowSystemAppearance = useCallback((enabled: boolean) => { setFollowSystemAppearanceState(enabled); if (enabled) { Appearance.setColorScheme?.(null); setThemeIdState(getSystemThemeId()); } }, []);
+  const setAppearanceShortcutEnabled = useCallback((enabled: boolean) => setAppearanceShortcutEnabledState(Boolean(enabled)), []);
+  const setAppearanceShortcutPosition = useCallback((position: FloatingShortcutPosition) => setAppearanceShortcutPositionState(sanitizeFloatingShortcutPosition(position)), []);
   const setColorScheme = useCallback((scheme: ColorScheme) => { setFollowSystemAppearanceState(false); setThemeIdState(scheme === "light" ? "pearl" : "aurora"); }, []);
   const setLocale = useCallback((nextLocale: AppLocale) => { if (isAppLocale(nextLocale)) setLocaleState(nextLocale); }, []);
   const setFavoriteCardPreferences = useCallback((nextPreferences: FavoriteCardPreferences) => { setFavoriteCardPreferencesState(sanitizeFavoriteCardPreferences(nextPreferences)); setIsFavoriteCardCustomized(true); }, []);
@@ -189,7 +238,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const fontWeightValue = FONT_WEIGHT_VALUES[fontWeightPreference];
   const lineHeightMultiplier = LINE_HEIGHT_MULTIPLIERS[lineSpacing];
   const readingFontFamily: "OpenDyslexic-Regular" | undefined = readingFont === "dyslexia" ? "OpenDyslexic-Regular" : undefined;
-  const value = useMemo(() => ({ theme, themeId, setThemeId, interfaceDensity, setInterfaceDensity, textScale, textScaleMultiplier, setTextScale, fontWeightPreference, fontWeightValue, setFontWeightPreference, lineSpacing, lineHeightMultiplier, setLineSpacing, readingFont, readingFontFamily, setReadingFont, resetAccessibilityPreferences, highContrast, setHighContrast, highContrastAccent, setHighContrastAccent, followSystemAppearance, setFollowSystemAppearance, colorScheme, setColorScheme, locale, setLocale, favoriteCardPreferences, setFavoriteCardPreferences, resetFavoriteCardPreferences, onboardingSeen, preferencesReady: ready, completeOnboarding, skipOnboarding, resetOnboarding, isRTL: direction === "rtl", direction, t }), [colorScheme, completeOnboarding, direction, favoriteCardPreferences, followSystemAppearance, fontWeightPreference, fontWeightValue, highContrast, highContrastAccent, interfaceDensity, lineHeightMultiplier, lineSpacing, locale, onboardingSeen, readingFont, readingFontFamily, ready, resetAccessibilityPreferences, resetFavoriteCardPreferences, resetOnboarding, setColorScheme, setFavoriteCardPreferences, setFollowSystemAppearance, setFontWeightPreference, setHighContrast, setHighContrastAccent, setInterfaceDensity, setLineSpacing, setLocale, setReadingFont, setTextScale, setThemeId, skipOnboarding, t, textScale, textScaleMultiplier, theme, themeId]);
+  const value = useMemo(() => ({ theme, themeId, setThemeId, quickAccessOrder, setQuickAccessOrder, resetQuickAccessOrder, canUndoQuickAccessOrder: previousQuickAccessOrder !== null, undoQuickAccessOrder, quickAccessHintSeen, dismissQuickAccessHint, hapticFeedbackEnabled, setHapticFeedbackEnabled, interfaceDensity, setInterfaceDensity, textScale, textScaleMultiplier, setTextScale, fontWeightPreference, fontWeightValue, setFontWeightPreference, lineSpacing, lineHeightMultiplier, setLineSpacing, readingFont, readingFontFamily, setReadingFont, resetAccessibilityPreferences, highContrast, setHighContrast, highContrastAccent, setHighContrastAccent, followSystemAppearance, setFollowSystemAppearance, appearanceShortcutEnabled, setAppearanceShortcutEnabled, appearanceShortcutPosition, setAppearanceShortcutPosition, colorScheme, setColorScheme, locale, setLocale, favoriteCardPreferences, setFavoriteCardPreferences, resetFavoriteCardPreferences, onboardingSeen, preferencesReady: ready, completeOnboarding, skipOnboarding, resetOnboarding, isRTL: direction === "rtl", direction, t }), [appearanceShortcutEnabled, appearanceShortcutPosition, colorScheme, completeOnboarding, direction, dismissQuickAccessHint, favoriteCardPreferences, followSystemAppearance, fontWeightPreference, fontWeightValue, hapticFeedbackEnabled, highContrast, highContrastAccent, interfaceDensity, lineHeightMultiplier, lineSpacing, locale, onboardingSeen, previousQuickAccessOrder, quickAccessHintSeen, quickAccessOrder, readingFont, readingFontFamily, ready, resetAccessibilityPreferences, resetFavoriteCardPreferences, resetOnboarding, resetQuickAccessOrder, setAppearanceShortcutEnabled, setAppearanceShortcutPosition, setColorScheme, setFavoriteCardPreferences, setFollowSystemAppearance, setFontWeightPreference, setHapticFeedbackEnabled, setHighContrast, setHighContrastAccent, setInterfaceDensity, setLineSpacing, setLocale, setQuickAccessOrder, setReadingFont, setTextScale, setThemeId, skipOnboarding, t, textScale, textScaleMultiplier, theme, themeId, undoQuickAccessOrder]);
 
   return <ThemeContext.Provider value={value}><View style={[{ flex: 1, backgroundColor: theme.colors.background }, themeVariables]}>{children}</View></ThemeContext.Provider>;
 }

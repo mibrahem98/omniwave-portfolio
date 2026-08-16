@@ -105,6 +105,10 @@ Read [CONTRIBUTING.md](CONTRIBUTING.md) and [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT
 
 The browser preview is useful for layout and copy review. Audio output routing, background playback, lock-screen controls, system sharing, and date-picker behavior should also be verified on iOS and Android devices or native builds.
 
+## Project case study
+
+Read the full Arabic project story in [**OmniWave — Design & Engineering Case Study**](docs/PROJECT_CASE_STUDY_AR.md). It documents the product stages, local-first architecture, technologies, feature evolution, validation strategy, and the native-device boundaries that remain deliberately explicit.
+
 ## Repository guide
 
 ```text

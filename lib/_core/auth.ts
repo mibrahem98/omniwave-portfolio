@@ -1,5 +1,6 @@
 import * as SecureStore from "expo-secure-store";
 import { Platform } from "react-native";
+
 import { SESSION_TOKEN_KEY, USER_INFO_KEY } from "@/constants/oauth";
 
 export type User = {
@@ -11,119 +12,92 @@ export type User = {
   lastSignedIn: Date;
 };
 
+function isNullableString(value: unknown): value is string | null {
+  return value === null || typeof value === "string";
+}
+
+function parseStoredUser(raw: string): User | null {
+  try {
+    const value: unknown = JSON.parse(raw);
+    if (!value || typeof value !== "object") return null;
+    const candidate = value as Record<string, unknown>;
+    if (!Number.isSafeInteger(candidate.id) || typeof candidate.openId !== "string" || candidate.openId.length > 256) return null;
+    if (!isNullableString(candidate.name) || !isNullableString(candidate.email) || !isNullableString(candidate.loginMethod)) return null;
+    const lastSignedIn = new Date(typeof candidate.lastSignedIn === "string" || typeof candidate.lastSignedIn === "number" ? candidate.lastSignedIn : 0);
+    if (!Number.isFinite(lastSignedIn.getTime())) return null;
+    return {
+      id: candidate.id as number,
+      openId: candidate.openId,
+      name: candidate.name?.slice(0, 160) ?? null,
+      email: candidate.email?.slice(0, 320) ?? null,
+      loginMethod: candidate.loginMethod?.slice(0, 80) ?? null,
+      lastSignedIn,
+    };
+  } catch {
+    return null;
+  }
+}
+
 export async function getSessionToken(): Promise<string | null> {
   try {
-    // Web platform uses cookie-based auth, no manual token management needed
-    if (Platform.OS === "web") {
-      console.log("[Auth] Web platform uses cookie-based auth, skipping token retrieval");
-      return null;
-    }
-
-    // Use SecureStore for native
-    console.log("[Auth] Getting session token...");
-    const token = await SecureStore.getItemAsync(SESSION_TOKEN_KEY);
-    console.log(
-      "[Auth] Session token retrieved from SecureStore:",
-      token ? `present (${token.substring(0, 20)}...)` : "missing",
-    );
-    return token;
-  } catch (error) {
-    console.error("[Auth] Failed to get session token:", error);
+    if (Platform.OS === "web") return null;
+    return await SecureStore.getItemAsync(SESSION_TOKEN_KEY);
+  } catch {
     return null;
   }
 }
 
 export async function setSessionToken(token: string): Promise<void> {
-  try {
-    // Web platform uses cookie-based auth, no manual token management needed
-    if (Platform.OS === "web") {
-      console.log("[Auth] Web platform uses cookie-based auth, skipping token storage");
-      return;
-    }
-
-    // Use SecureStore for native
-    console.log("[Auth] Setting session token...", token.substring(0, 20) + "...");
-    await SecureStore.setItemAsync(SESSION_TOKEN_KEY, token);
-    console.log("[Auth] Session token stored in SecureStore successfully");
-  } catch (error) {
-    console.error("[Auth] Failed to set session token:", error);
-    throw error;
-  }
+  const safeToken = token.trim();
+  if (!safeToken) throw new Error("Invalid session token");
+  if (Platform.OS === "web") return;
+  await SecureStore.setItemAsync(SESSION_TOKEN_KEY, safeToken);
 }
 
 export async function removeSessionToken(): Promise<void> {
   try {
-    // Web platform uses cookie-based auth, logout is handled by server clearing cookie
-    if (Platform.OS === "web") {
-      console.log("[Auth] Web platform uses cookie-based auth, skipping token removal");
-      return;
-    }
-
-    // Use SecureStore for native
-    console.log("[Auth] Removing session token...");
+    if (Platform.OS === "web") return;
     await SecureStore.deleteItemAsync(SESSION_TOKEN_KEY);
-    console.log("[Auth] Session token removed from SecureStore successfully");
-  } catch (error) {
-    console.error("[Auth] Failed to remove session token:", error);
+  } catch {
+    // A missing or inaccessible local token must not block local playback.
   }
 }
 
 export async function getUserInfo(): Promise<User | null> {
   try {
-    console.log("[Auth] Getting user info...");
-
-    let info: string | null = null;
-    if (Platform.OS === "web") {
-      // Use localStorage for web
-      info = window.localStorage.getItem(USER_INFO_KEY);
-    } else {
-      // Use SecureStore for native
-      info = await SecureStore.getItemAsync(USER_INFO_KEY);
-    }
-
-    if (!info) {
-      console.log("[Auth] No user info found");
-      return null;
-    }
-    const user = JSON.parse(info);
-    console.log("[Auth] User info retrieved:", user);
-    return user;
-  } catch (error) {
-    console.error("[Auth] Failed to get user info:", error);
+    const raw = Platform.OS === "web" ? window.localStorage.getItem(USER_INFO_KEY) : await SecureStore.getItemAsync(USER_INFO_KEY);
+    return raw ? parseStoredUser(raw) : null;
+  } catch {
     return null;
   }
 }
 
 export async function setUserInfo(user: User): Promise<void> {
-  try {
-    console.log("[Auth] Setting user info...", user);
-
-    if (Platform.OS === "web") {
-      // Use localStorage for web
-      window.localStorage.setItem(USER_INFO_KEY, JSON.stringify(user));
-      console.log("[Auth] User info stored in localStorage successfully");
-      return;
-    }
-
-    // Use SecureStore for native
-    await SecureStore.setItemAsync(USER_INFO_KEY, JSON.stringify(user));
-    console.log("[Auth] User info stored in SecureStore successfully");
-  } catch (error) {
-    console.error("[Auth] Failed to set user info:", error);
+  const normalized: User = {
+    id: user.id,
+    openId: user.openId.slice(0, 256),
+    name: user.name?.slice(0, 160) ?? null,
+    email: user.email?.slice(0, 320) ?? null,
+    loginMethod: user.loginMethod?.slice(0, 80) ?? null,
+    lastSignedIn: user.lastSignedIn,
+  };
+  if (!Number.isSafeInteger(normalized.id) || !normalized.openId) throw new Error("Invalid user data");
+  const serialized = JSON.stringify(normalized);
+  if (Platform.OS === "web") {
+    window.localStorage.setItem(USER_INFO_KEY, serialized);
+    return;
   }
+  await SecureStore.setItemAsync(USER_INFO_KEY, serialized);
 }
 
 export async function clearUserInfo(): Promise<void> {
   try {
     if (Platform.OS === "web") {
-      // Use localStorage for web
       window.localStorage.removeItem(USER_INFO_KEY);
       return;
     }
-
-    // Use SecureStore for native
     await SecureStore.deleteItemAsync(USER_INFO_KEY);
-  } catch (error) {
-    console.error("[Auth] Failed to clear user info:", error);
+  } catch {
+    // Local cleanup is best-effort; no user data is written to logs.
   }
 }

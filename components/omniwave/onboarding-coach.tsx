@@ -44,7 +44,7 @@ export function OnboardingCoach() {
   return (
     <View accessibilityViewIsModal style={styles.layer}>
       <View style={styles.scrim} />
-      <View style={[styles.card, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border }]}> 
+      <View style={[styles.card, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border }]}>
         <View style={[styles.topline, { flexDirection: direction }]}>
           <Text style={[styles.progress, { color: theme.colors.primary }]}>{`${step + 1} / ${STEP_TITLES.length}`}</Text>
           <Pressable accessibilityRole="button" accessibilityLabel={t("onboardingSkip")} onPress={skipOnboarding} hitSlop={8} style={({ pressed }) => [styles.skip, pressed && styles.pressed]}>

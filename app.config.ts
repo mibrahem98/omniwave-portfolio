@@ -42,7 +42,7 @@ const config: ExpoConfig = {
   name: env.appName,
   slug: env.appSlug,
   version: "1.0.0",
-  orientation: "portrait",
+  orientation: "default",
   icon: "./assets/images/icon.png",
   scheme: env.scheme,
   userInterfaceStyle: "automatic",
@@ -90,6 +90,13 @@ const config: ExpoConfig = {
     "@react-native-community/datetimepicker",
     "expo-document-picker",
     [
+      "expo-media-library",
+      {
+        "photosPermission": "Allow $(PRODUCT_NAME) to access local videos you choose to import.",
+        "granularPermissions": ["audio", "video"]
+      }
+    ],
+    [
       "expo-font",
       {
         fonts: ["./assets/fonts/OpenDyslexic-Regular.ttf", "./assets/fonts/OpenDyslexic-Bold.ttf"],
@@ -107,6 +114,12 @@ const config: ExpoConfig = {
       {
         supportsBackgroundPlayback: true,
         supportsPictureInPicture: true,
+      },
+    ],
+    [
+      "expo-screen-orientation",
+      {
+        initialOrientation: "DEFAULT",
       },
     ],
     [

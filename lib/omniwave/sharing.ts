@@ -1,5 +1,6 @@
 import * as FileSystem from "expo-file-system/legacy";
 import * as Sharing from "expo-sharing";
+import * as Print from "expo-print";
 import { PixelRatio, Platform, Share, View } from "react-native";
 import { captureRef } from "react-native-view-shot";
 import type { RefObject } from "react";
@@ -94,6 +95,34 @@ export async function exportListeningHistory(historyTracks: Track[], options: Hi
   const artifact = await createListeningHistoryExport(historyTracks, options, onProgress);
   onProgress?.("sharing");
   await openListeningHistoryShare(artifact);
+}
+
+export type VideoSummaryExportFormat = "text" | "pdf";
+
+function escapeHtml(value: string) { return value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;"); }
+
+export function buildVideoSummaryText(title: string, summary: string) {
+  const safeTitle = safeText(title, 100) || "OmniWave video";
+  const safeSummary = safeText(summary, 1_800);
+  if (!safeSummary) throw new Error("SUMMARY_UNAVAILABLE");
+  return [safeTitle, "", safeSummary, "", "Created locally by OmniWave"].join("\n");
+}
+
+export async function exportVideoSummary(title: string, summary: string, format: VideoSummaryExportFormat) {
+  if (Platform.OS === "web" || !FileSystem.cacheDirectory || !(await Sharing.isAvailableAsync())) throw new Error("EXPORT_UNAVAILABLE");
+  const content = buildVideoSummaryText(title, summary);
+  const fileRoot = FileSystem.cacheDirectory;
+  const fileName = `omniwave-video-summary-${Date.now()}`;
+  if (format === "text") {
+    const fileUri = `${fileRoot}${fileName}.txt`;
+    await FileSystem.writeAsStringAsync(fileUri, content, { encoding: FileSystem.EncodingType.UTF8 });
+    await Sharing.shareAsync(fileUri, { mimeType: "text/plain", UTI: "public.plain-text", dialogTitle: "OmniWave video summary" });
+    return;
+  }
+  const { uri } = await Print.printToFileAsync({ html: `<!doctype html><html><body><h1>${escapeHtml(safeText(title, 100) || "OmniWave video")}</h1><p>${escapeHtml(safeText(summary, 1_800)).replace(/\n/g, "<br/>")}</p></body></html>` });
+  const fileUri = `${fileRoot}${fileName}.pdf`;
+  await FileSystem.copyAsync({ from: uri, to: fileUri });
+  await Sharing.shareAsync(fileUri, { mimeType: "application/pdf", UTI: "com.adobe.pdf", dialogTitle: "OmniWave video summary" });
 }
 
 export async function shareFavorites(favoriteTracks: Track[]) {

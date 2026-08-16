@@ -5,7 +5,11 @@ function isSafeUri(value: unknown, allowRemote: boolean): value is string {
 }
 
 export function isSafeAudioUri(value: unknown): value is string {
-  return isSafeUri(value, true);
+  return isSafeUri(value, false);
+}
+
+export function isSafeArtworkUri(value: unknown): value is string {
+  return isSafeUri(value, false);
 }
 
 export function isSafeLocalVideoUri(value: unknown): value is string {
