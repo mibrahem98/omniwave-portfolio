@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="OmniWave: مشغّل وسائط محلي للهواتف، دراسة حالة تصميمية وهندسية." />
+    <title>OmniWave — Portfolio</title>
+    <style>
+      :root { --ink:#10221f; --muted:#5e706b; --line:#d9e8e3; --mint:#e9f6f1; --green:#0d8a6d; --deep:#073d32; --paper:#fbfdfc; }
+      * { box-sizing:border-box; } body { margin:0; color:var(--ink); background:var(--paper); font-family:"Noto Sans Arabic",Tahoma,Arial,sans-serif; line-height:1.75; }
+      a { color:inherit; } .wrap { max-width:1120px; margin:auto; padding:0 24px; } .eyebrow { color:var(--green); font-size:.82rem; font-weight:800; letter-spacing:.11em; }
+      .hero { overflow:hidden; padding:72px 0 56px; background:radial-gradient(circle at 11% 12%,#c9efe3,transparent 34%),linear-gradient(135deg,#f8fffc 0%,#e8f5f0 100%); border-bottom:1px solid var(--line); }
+      .hero-grid { display:grid; grid-template-columns:1.1fr .9fr; gap:48px; align-items:center; } h1 { font-size:clamp(2.5rem,6vw,5.6rem); line-height:1; margin:.15em 0; letter-spacing:-.04em; } h2 { font-size:1.6rem; line-height:1.25; margin:0 0 18px; } p { margin:0 0 16px; color:var(--muted); }
+      .hero p { font-size:1.08rem; max-width:60ch; } .actions { display:flex; flex-wrap:wrap; gap:10px; margin-top:26px; } .button { display:inline-flex; align-items:center; justify-content:center; min-height:46px; padding:9px 17px; border-radius:999px; font-weight:800; text-decoration:none; border:1px solid var(--green); } .button.primary { color:#fff; background:var(--green); } .button.secondary { color:var(--deep); background:#fff; }
+      .screen { width:min(100%,350px); justify-self:center; border:10px solid #173c33; border-radius:34px; box-shadow:0 24px 60px #0a4b3a33; background:#fff; } .section { padding:60px 0; } .grid { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; } .card { padding:22px; border:1px solid var(--line); border-radius:20px; background:#fff; } .card h3 { margin:0 0 8px; font-size:1rem; } .card p { font-size:.91rem; }
+      .band { background:var(--deep); color:#fff; } .band p { color:#c9e1da; } .status { display:grid; grid-template-columns:1fr 1fr; gap:18px; } .status .card { background:#0b5142; border-color:#297564; } .status .card p { color:#c9e1da; } .status strong { color:#fff; }
+      .tech { display:flex; flex-wrap:wrap; gap:9px; } .chip { padding:7px 11px; border:1px solid var(--line); border-radius:999px; background:var(--mint); color:var(--deep); font-size:.86rem; font-weight:700; } .note { padding:18px 20px; border-right:4px solid var(--green); border-radius:10px; background:var(--mint); }
+      footer { padding:30px 0; border-top:1px solid var(--line); font-size:.9rem; } @media (max-width:760px) { .hero { padding-top:48px; } .hero-grid,.grid,.status { grid-template-columns:1fr; gap:20px; } .screen { order:-1; width:220px; } .section { padding:44px 0; } }
+    </style>
+  </head>
+  <body>
+    <header class="hero">
+      <div class="wrap hero-grid">
+        <div>
+          <div class="eyebrow">LOCAL-FIRST MOBILE MEDIA</div>
+          <h1>OmniWave</h1>
+          <p>مشغّل وسائط محلي للهواتف يضع ملكية ملفات المستخدم، وضوح التحكم، والخصوصية الافتراضية في صلب تجربة الموسيقى والفيديو.</p>
+          <div class="actions">
+            <a class="button primary" href="https://github.com/mibrahem98/omniwave-portfolio">عرض المستودع</a>
+            <a class="button secondary" href="../OmniWave_Case_Study_AR.pdf">تحميل دراسة الحالة PDF</a>
+          </div>
+        </div>
+        <img class="screen" src="../assets/omniwave-home.png" alt="لقطة من شاشة OmniWave الرئيسية" />
+      </div>
+    </header>
+
+    <main>
+      <section class="section"><div class="wrap"><h2>الفكرة</h2><p>صُمم OmniWave لمستخدم يحتفظ بمكتبته على هاتفه ولا يريد أن يسلّمها لخدمة سحابية. لذلك تبقى المكتبة والتفضيلات والسجل على الجهاز، من دون حسابات أو إعلانات أو تحليلات خارجية.</p><div class="grid"><article class="card"><h3>مكتبة شخصية</h3><p>استيراد صوت وفيديو من الملفات أو مكتبة الجهاز بإذن صريح، مع تحقق وتجاوز التكرارات.</p></article><article class="card"><h3>تحكم شامل</h3><p>مشغّل موسيقى كامل وطابور وقوائم تشغيل ومؤقت نوم، إضافة إلى VTT وسرعة وتشغيل فيديو بملء الشاشة.</p></article><article class="card"><h3>إتاحة وتخصيص</h3><p>أربع لغات وRTL وثيمات وحجم نص وتباين وحركة مخفضة وبدائل مرئية للإيماءات.</p></article></div></div></section>
+
+      <section class="section band"><div class="wrap"><div class="status"><article class="card"><h2>التحقق البرمجي</h2><p><strong>TypeScript + Vitest + Expo ESLint</strong><br />تغطي عقود البيانات والواجهة والتوطين والتصدير وVTT، وتُشغّل في CI.</p></article><article class="card"><h2>التحقق الأصلي</h2><p><strong>قيد التوثيق على الهاتف</strong><br />الخلفية وشاشة القفل وBluetooth والتدوير وPiP والأذونات تحتاج نتائج iOS وAndroid حقيقية، ولا تُعرض هنا كأنها مكتملة.</p></article></div></div></section>
+
+      <section class="section"><div class="wrap"><h2>دراسة الحالة</h2><p>تشرح دراسة الحالة مسار التصميم والهندسة: بنية محلية أولاً، مكتبة متحققة، تجربة وصول مخصصة، توسعة الفيديو، وحواجز الجودة والأمان.</p><div class="actions"><a class="button primary" href="../PROJECT_CASE_STUDY_AR.md">قراءة دراسة الحالة</a><a class="button secondary" href="../NATIVE_TEST_MATRIX_IOS_ANDROID.md">مصفوفة اختبار iOS وAndroid</a></div><div class="tech" style="margin-top:28px"><span class="chip">TypeScript</span><span class="chip">React Native</span><span class="chip">Expo SDK 54</span><span class="chip">Expo Audio</span><span class="chip">Expo Video</span><span class="chip">AsyncStorage</span><span class="chip">Vitest</span><span class="chip">GitHub Actions</span></div></div></section>
+
+      <section class="section"><div class="wrap"><h2>فيديو الجهاز الحقيقي</h2><div class="note"><strong>قيد الانتظار.</strong> لا يحتوي هذا المعرض على تسجيل مصطنع أو معاينة ويب موصوفة كاختبار هاتف. سيضاف فيديو 30–60 ثانية فور توفر تسجيل من جهاز حقيقي يوضح رقم البناء واستيراد ملف مرخص وتشغيله وسلوكاً أصلياً واحداً، بعد تنقيح الإشعارات والبيانات الخاصة.</div></div></section>
+    </main>
+
+    <footer><div class="wrap">OmniWave — حالة العرض توثق ما تم التحقق منه وما لا يزال يحتاج جهازاً فعلياً.</div></footer>
+  </body>
+</html>
