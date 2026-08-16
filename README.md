@@ -107,7 +107,7 @@ The browser preview is useful for layout and copy review. Audio output routing, 
 
 ## Project case study
 
-Read the full Arabic project story in [**OmniWave — Design & Engineering Case Study**](docs/PROJECT_CASE_STUDY_AR.md). It documents the product stages, local-first architecture, technologies, feature evolution, validation strategy, and the native-device boundaries that remain deliberately explicit.
+Read the full Arabic project story in [**OmniWave — Design & Engineering Case Study**](docs/PROJECT_CASE_STUDY_AR.md) or download its [**professional PDF edition**](docs/OmniWave_Case_Study_AR.pdf). Together they document the product stages, local-first architecture, technologies, feature evolution, validation strategy, and the native-device boundaries that remain deliberately explicit.
 
 ## Repository guide
 
