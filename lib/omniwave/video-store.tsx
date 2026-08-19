@@ -5,10 +5,12 @@ import * as VideoThumbnails from "expo-video-thumbnails";
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { Platform } from "react-native";
 
+import { reportLocalDiagnostic } from "@/lib/_core/local-diagnostics";
 import type { VideoCaptionBackground, VideoCaptionPosition, VideoCaptionTextColor, VideoCaptionTextSize, VideoItem, VideoPlaybackRate, VideoPlaylist, VideoPreferences, VideoSubtitle, VideoSummary, VideoSummaryLength } from "@/lib/omniwave/types";
 import { isSafeLocalSubtitleUri, isSafeLocalVideoUri } from "@/lib/omniwave/validation";
 import { haptic } from "@/lib/omniwave/haptics";
 import { scanDeviceMedia, type DeviceMediaCandidate, type DeviceMediaIssue } from "@/lib/omniwave/device-media-scan";
+import { createLocalMediaFingerprint, filterNewLocalMedia, isLocalMediaFingerprint } from "@/lib/omniwave/media-stability";
 
 const STORAGE_KEY = "omniwave:video-library:v1";
 const VIDEO_DIRECTORY = "omniwave-videos/";
@@ -107,7 +109,7 @@ function isVideoSummary(value: unknown): value is VideoSummary {
 }
 
 function isVideoItem(value: unknown): value is VideoItem {
-  return isRecord(value) && typeof value.id === "string" && typeof value.title === "string" && isSafeLocalVideoUri(value.localUri) && (typeof value.thumbnailUri === "undefined" || isSafeLocalVideoUri(value.thumbnailUri)) && (typeof value.subtitle === "undefined" || isVideoSubtitle(value.subtitle)) && (typeof value.summary === "undefined" || isVideoSummary(value.summary)) && Number.isFinite(value.durationSeconds) && Number(value.durationSeconds) >= 0 && Number.isFinite(value.sizeBytes) && Number(value.sizeBytes) >= 0 && typeof value.mimeType === "string" && Number.isFinite(value.addedAt) && Number.isFinite(value.lastPositionSeconds) && Number(value.lastPositionSeconds) >= 0 && typeof value.isFavorite === "boolean";
+  return isRecord(value) && typeof value.id === "string" && typeof value.title === "string" && isSafeLocalVideoUri(value.localUri) && (typeof value.thumbnailUri === "undefined" || isSafeLocalVideoUri(value.thumbnailUri)) && (typeof value.subtitle === "undefined" || isVideoSubtitle(value.subtitle)) && (typeof value.summary === "undefined" || isVideoSummary(value.summary)) && (value.sourceFingerprint === undefined || isLocalMediaFingerprint(value.sourceFingerprint)) && Number.isFinite(value.durationSeconds) && Number(value.durationSeconds) >= 0 && Number.isFinite(value.sizeBytes) && Number(value.sizeBytes) >= 0 && typeof value.mimeType === "string" && Number.isFinite(value.addedAt) && Number.isFinite(value.lastPositionSeconds) && Number(value.lastPositionSeconds) >= 0 && typeof value.isFavorite === "boolean";
 }
 
 function normalizePlaylistName(value: unknown) {
@@ -147,6 +149,7 @@ async function persistAsset(asset: DocumentPicker.DocumentPickerAsset, index: nu
     await FileSystem.copyAsync({ from: thumbnail.uri, to: destination });
     thumbnailUri = destination;
   } catch {
+    reportLocalDiagnostic("video_thumbnail_generation_failed");
     thumbnailUri = undefined;
   }
   return { uri, thumbnailUri };
@@ -170,7 +173,7 @@ async function removeManagedFile(uri: string | undefined) {
   try {
     await FileSystem.deleteAsync(uri, { idempotent: true });
   } catch {
-    // Library state is still removed if a managed file has already disappeared.
+    reportLocalDiagnostic("video_library_cleanup_failed");
   }
 }
 
@@ -205,7 +208,7 @@ export function VideoProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (!isReady) return;
     const next: PersistedVideoLibrary = { videos, videoPlaylists, preferences };
-    void AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(next)).catch(() => undefined);
+    void AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(next)).catch(() => reportLocalDiagnostic("video_library_write_failed"));
   }, [isReady, preferences, videoPlaylists, videos]);
 
   const importVideoFiles = useCallback(async () => {
@@ -214,16 +217,18 @@ export function VideoProvider({ children }: { children: React.ReactNode }) {
     try {
       const result = await DocumentPicker.getDocumentAsync({ type: "video/*", multiple: true, copyToCacheDirectory: true });
       if (result.canceled) return;
-      const accepted = result.assets.filter(isVideoAsset).slice(0, MAX_IMPORT_ITEMS);
+      const capacity = Math.max(0, MAX_VIDEO_ITEMS - videos.length);
+      if (!capacity) { setVideoIssue("import"); haptic.error(); return; }
+      const accepted = result.assets.filter(isVideoAsset).slice(0, Math.min(MAX_IMPORT_ITEMS, capacity));
       if (!accepted.length) { setVideoIssue("unsupported"); haptic.error(); return; }
-      const existingSignatures = new Set(videos.map((video) => `${video.title}:${video.sizeBytes}`));
-      const unique = accepted.filter((asset) => !existingSignatures.has(`${normalizedName(asset.name, "Local video")}:${Math.max(0, asset.size ?? 0)}`));
+      const existingFingerprints = videos.map((video) => video.sourceFingerprint ?? createLocalMediaFingerprint({ fileName: video.title, sizeBytes: video.sizeBytes })).filter(isLocalMediaFingerprint);
+      const unique = filterNewLocalMedia(accepted, existingFingerprints, (asset) => createLocalMediaFingerprint({ fileName: asset.name, sizeBytes: asset.size }));
       if (!unique.length) { setVideoIssue("import"); haptic.error(); return; }
       const created = await Promise.all(unique.map(async (asset, index): Promise<VideoItem | null> => {
         try {
           const local = await persistAsset(asset, index);
           if (!isSafeLocalVideoUri(local.uri)) return null;
-          return { id: `video-${Date.now()}-${index}`, title: normalizedName(asset.name, "Local video"), localUri: local.uri, thumbnailUri: local.thumbnailUri, durationSeconds: 0, sizeBytes: Math.max(0, asset.size ?? 0), mimeType: typeof asset.mimeType === "string" ? asset.mimeType.slice(0, 100) : "video/local", addedAt: Date.now(), lastPositionSeconds: 0, isFavorite: false };
+          return { id: `video-${Date.now()}-${index}`, title: normalizedName(asset.name, "Local video"), localUri: local.uri, thumbnailUri: local.thumbnailUri, durationSeconds: 0, sizeBytes: Math.max(0, asset.size ?? 0), mimeType: typeof asset.mimeType === "string" ? asset.mimeType.slice(0, 100) : "video/local", addedAt: Date.now(), lastPositionSeconds: 0, isFavorite: false, sourceFingerprint: createLocalMediaFingerprint({ fileName: asset.name, sizeBytes: asset.size }) };
         } catch {
           return null;
         }
@@ -249,14 +254,15 @@ export function VideoProvider({ children }: { children: React.ReactNode }) {
       const result = await scanDeviceMedia("video", capacity);
       if (result.issue) { setDeviceScanStatus(result.issue); haptic.error(); return; }
       const existingTitles = new Set(videos.map((video) => video.title));
+      const existingFingerprints = videos.map((video) => video.sourceFingerprint ?? createLocalMediaFingerprint({ fileName: video.title, sizeBytes: video.sizeBytes })).filter(isLocalMediaFingerprint);
       const candidates = result.candidates.map(videoAssetFromDeviceCandidate).filter(isVideoAsset);
-      const unique = candidates.filter((asset, index, values) => !existingTitles.has(normalizedName(asset.name, "Local video")) && values.findIndex((candidate) => candidate.uri === asset.uri) === index);
+      const unique = filterNewLocalMedia(candidates, existingFingerprints, (asset) => createLocalMediaFingerprint({ fileName: asset.name, sizeBytes: asset.size })).filter((asset) => !existingTitles.has(normalizedName(asset.name, "Local video")));
       if (!unique.length) { setDeviceScanStatus("empty"); haptic.error(); return; }
       const created = await Promise.all(unique.map(async (asset, index): Promise<VideoItem | null> => {
         try {
           const local = await persistAsset(asset, index);
           if (!isSafeLocalVideoUri(local.uri)) return null;
-          return { id: `device-video-${Date.now()}-${index}`, title: normalizedName(asset.name, "Local video"), localUri: local.uri, thumbnailUri: local.thumbnailUri, durationSeconds: 0, sizeBytes: 0, mimeType: typeof asset.mimeType === "string" ? asset.mimeType.slice(0, 100) : "video/local", addedAt: Date.now(), lastPositionSeconds: 0, isFavorite: false };
+          return { id: `device-video-${Date.now()}-${index}`, title: normalizedName(asset.name, "Local video"), localUri: local.uri, thumbnailUri: local.thumbnailUri, durationSeconds: 0, sizeBytes: 0, mimeType: typeof asset.mimeType === "string" ? asset.mimeType.slice(0, 100) : "video/local", addedAt: Date.now(), lastPositionSeconds: 0, isFavorite: false, sourceFingerprint: createLocalMediaFingerprint({ fileName: asset.name, sizeBytes: asset.size }) };
         } catch {
           return null;
         }

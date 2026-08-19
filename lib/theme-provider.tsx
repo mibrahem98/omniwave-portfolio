@@ -4,7 +4,8 @@ import { Appearance, View } from "react-native";
 import { colorScheme as nativewindColorScheme, vars } from "nativewind";
 
 import type { ColorScheme } from "@/constants/theme";
-import { isAppLocale, LOCALE_META, TRANSLATIONS, type AppLocale, type TranslationKey } from "@/lib/localization";
+import { reportLocalDiagnostic } from "@/lib/_core/local-diagnostics";
+import { isAppLocale, LOCALE_META, translate, type AppLocale, type TranslationKey } from "@/lib/localization";
 import type { FavoriteCardColor, FavoriteCardPreferences, FavoriteCardStyle } from "@/lib/omniwave/types";
 import { setHapticFeedbackEnabled as configureHapticFeedback } from "@/lib/omniwave/haptics";
 
@@ -21,18 +22,18 @@ export type FloatingShortcutPosition = { x: number; y: number };
 export const TEXT_SCALE_MULTIPLIERS: Record<TextScale, number> = { standard: 1, large: 1.15, extraLarge: 1.3 };
 export const FONT_WEIGHT_VALUES: Record<FontWeightPreference, "400" | "600" | "700"> = { regular: "400", medium: "600", bold: "700" };
 export const LINE_HEIGHT_MULTIPLIERS: Record<LineSpacingPreference, number> = { standard: 1, relaxed: 1.25, spacious: 1.45 };
-export type AppThemeColors = { background: string; surface: string; surfaceMuted: string; text: string; muted: string; border: string; primary: string; secondary: string; accent: string; glow: string; onPrimary: string };
+export type AppThemeColors = { background: string; surface: string; surfaceMuted: string; text: string; muted: string; border: string; primary: string; secondary: string; accent: string; glow: string; onPrimary: string; glass: string; glassStrong: string; glassInset: string; glassOverlay: string; glassBorder: string; glassHighlight: string; shadow: string };
 export type AppTheme = { id: AppThemeId; isDark: boolean; colors: AppThemeColors };
 
 export const APP_THEMES: Record<AppThemeId, AppTheme> = {
-  aurora: { id: "aurora", isDark: true, colors: { background: "#06080E", surface: "#121722", surfaceMuted: "#0D121B", text: "#F5FAF8", muted: "#9BAAA6", border: "#273343", primary: "#31E9C4", secondary: "#9F86FF", accent: "#FF6F9F", glow: "#0C3A43", onPrimary: "#04130F" } },
-  midnight: { id: "midnight", isDark: true, colors: { background: "#090C18", surface: "#151A2B", surfaceMuted: "#101421", text: "#F7F8FF", muted: "#9AA4C0", border: "#2A3150", primary: "#78A9FF", secondary: "#B79AFF", accent: "#FF8FB6", glow: "#18264D", onPrimary: "#081126" } },
-  pearl: { id: "pearl", isDark: false, colors: { background: "#F7F8F6", surface: "#FFFFFF", surfaceMuted: "#EDF1EE", text: "#15201C", muted: "#61736B", border: "#D9E2DC", primary: "#148B69", secondary: "#7663C7", accent: "#CA4E78", glow: "#D8F0E7", onPrimary: "#F6FFFB" } },
-  velvet: { id: "velvet", isDark: true, colors: { background: "#120A18", surface: "#21132B", surfaceMuted: "#191020", text: "#FFF8FE", muted: "#C3AAC5", border: "#3E284A", primary: "#E888D1", secondary: "#A78BFA", accent: "#FFAC67", glow: "#3B1E41", onPrimary: "#280B21" } },
-  sunset: { id: "sunset", isDark: true, colors: { background: "#171009", surface: "#261B12", surfaceMuted: "#1E150E", text: "#FFF8F0", muted: "#C8B29B", border: "#4A3320", primary: "#F9B75D", secondary: "#F7797D", accent: "#84DCC6", glow: "#4B2D18", onPrimary: "#2A1904" } },
-  cloud: { id: "cloud", isDark: false, colors: { background: "#F8FBFF", surface: "#FFFFFF", surfaceMuted: "#EDF5FF", text: "#10243A", muted: "#5C7187", border: "#D8E8F6", primary: "#2A7EC7", secondary: "#66B9EA", accent: "#6076D9", glow: "#DDECFA", onPrimary: "#FFFFFF" } },
-  tidal: { id: "tidal", isDark: false, colors: { background: "#F2FBFF", surface: "#FEFFFF", surfaceMuted: "#E5F5FA", text: "#113445", muted: "#53737F", border: "#CBE6EF", primary: "#147FA5", secondary: "#6DCFE4", accent: "#3E8DCC", glow: "#D9F4F9", onPrimary: "#FFFFFF" } },
-  porcelain: { id: "porcelain", isDark: false, colors: { background: "#FBF8F2", surface: "#FFFFFC", surfaceMuted: "#F2EEE6", text: "#2A2C2A", muted: "#6C706B", border: "#E3DDD2", primary: "#407E9C", secondary: "#88BBD1", accent: "#8A6BA9", glow: "#EEF1EB", onPrimary: "#FFFFFF" } },
+  aurora: { id: "aurora", isDark: true, colors: { background: "#06080E", surface: "#121722", surfaceMuted: "#0D121B", text: "#F5FAF8", muted: "#9BAAA6", border: "#273343", primary: "#31E9C4", secondary: "#9F86FF", accent: "#FF6F9F", glow: "#0C3A43", onPrimary: "#04130F", glass: "rgba(18, 26, 38, 0.72)", glassStrong: "rgba(20, 29, 43, 0.88)", glassInset: "rgba(3, 8, 14, 0.46)", glassOverlay: "rgba(49, 233, 196, 0.08)", glassBorder: "rgba(210, 255, 245, 0.16)", glassHighlight: "rgba(255, 255, 255, 0.30)", shadow: "#02040A" } },
+  midnight: { id: "midnight", isDark: true, colors: { background: "#090C18", surface: "#151A2B", surfaceMuted: "#101421", text: "#F7F8FF", muted: "#9AA4C0", border: "#2A3150", primary: "#78A9FF", secondary: "#B79AFF", accent: "#FF8FB6", glow: "#18264D", onPrimary: "#081126", glass: "rgba(22, 29, 52, 0.73)", glassStrong: "rgba(24, 31, 56, 0.90)", glassInset: "rgba(4, 8, 22, 0.48)", glassOverlay: "rgba(120, 169, 255, 0.09)", glassBorder: "rgba(218, 228, 255, 0.17)", glassHighlight: "rgba(255, 255, 255, 0.28)", shadow: "#02030B" } },
+  pearl: { id: "pearl", isDark: false, colors: { background: "#F7F8F6", surface: "#FFFFFF", surfaceMuted: "#EDF1EE", text: "#15201C", muted: "#61736B", border: "#D9E2DC", primary: "#148B69", secondary: "#7663C7", accent: "#CA4E78", glow: "#D8F0E7", onPrimary: "#F6FFFB", glass: "rgba(255, 255, 255, 0.72)", glassStrong: "rgba(255, 255, 255, 0.90)", glassInset: "rgba(19, 49, 39, 0.055)", glassOverlay: "rgba(20, 139, 105, 0.08)", glassBorder: "rgba(28, 66, 52, 0.12)", glassHighlight: "rgba(255, 255, 255, 0.92)", shadow: "#5D756A" } },
+  velvet: { id: "velvet", isDark: true, colors: { background: "#120A18", surface: "#21132B", surfaceMuted: "#191020", text: "#FFF8FE", muted: "#C3AAC5", border: "#3E284A", primary: "#E888D1", secondary: "#A78BFA", accent: "#FFAC67", glow: "#3B1E41", onPrimary: "#280B21", glass: "rgba(39, 21, 49, 0.74)", glassStrong: "rgba(45, 24, 58, 0.90)", glassInset: "rgba(19, 5, 24, 0.48)", glassOverlay: "rgba(232, 136, 209, 0.08)", glassBorder: "rgba(255, 232, 252, 0.17)", glassHighlight: "rgba(255, 255, 255, 0.27)", shadow: "#0B040E" } },
+  sunset: { id: "sunset", isDark: true, colors: { background: "#171009", surface: "#261B12", surfaceMuted: "#1E150E", text: "#FFF8F0", muted: "#C8B29B", border: "#4A3320", primary: "#F9B75D", secondary: "#F7797D", accent: "#84DCC6", glow: "#4B2D18", onPrimary: "#2A1904", glass: "rgba(45, 31, 20, 0.74)", glassStrong: "rgba(49, 33, 22, 0.90)", glassInset: "rgba(26, 15, 7, 0.48)", glassOverlay: "rgba(249, 183, 93, 0.08)", glassBorder: "rgba(255, 241, 218, 0.16)", glassHighlight: "rgba(255, 255, 255, 0.25)", shadow: "#0C0804" } },
+  cloud: { id: "cloud", isDark: false, colors: { background: "#F8FBFF", surface: "#FFFFFF", surfaceMuted: "#EDF5FF", text: "#10243A", muted: "#5C7187", border: "#D8E8F6", primary: "#2A7EC7", secondary: "#66B9EA", accent: "#6076D9", glow: "#DDECFA", onPrimary: "#FFFFFF", glass: "rgba(255, 255, 255, 0.75)", glassStrong: "rgba(255, 255, 255, 0.92)", glassInset: "rgba(19, 62, 101, 0.055)", glassOverlay: "rgba(42, 126, 199, 0.08)", glassBorder: "rgba(31, 93, 145, 0.13)", glassHighlight: "rgba(255, 255, 255, 0.96)", shadow: "#53799D" } },
+  tidal: { id: "tidal", isDark: false, colors: { background: "#F2FBFF", surface: "#FEFFFF", surfaceMuted: "#E5F5FA", text: "#113445", muted: "#53737F", border: "#CBE6EF", primary: "#147FA5", secondary: "#6DCFE4", accent: "#3E8DCC", glow: "#D9F4F9", onPrimary: "#FFFFFF", glass: "rgba(254, 255, 255, 0.74)", glassStrong: "rgba(255, 255, 255, 0.91)", glassInset: "rgba(9, 72, 92, 0.055)", glassOverlay: "rgba(20, 127, 165, 0.08)", glassBorder: "rgba(16, 103, 135, 0.13)", glassHighlight: "rgba(255, 255, 255, 0.96)", shadow: "#43798A" } },
+  porcelain: { id: "porcelain", isDark: false, colors: { background: "#FBF8F2", surface: "#FFFFFC", surfaceMuted: "#F2EEE6", text: "#2A2C2A", muted: "#6C706B", border: "#E3DDD2", primary: "#407E9C", secondary: "#88BBD1", accent: "#8A6BA9", glow: "#EEF1EB", onPrimary: "#FFFFFF", glass: "rgba(255, 255, 252, 0.76)", glassStrong: "rgba(255, 255, 252, 0.92)", glassInset: "rgba(69, 65, 58, 0.055)", glassOverlay: "rgba(64, 126, 156, 0.08)", glassBorder: "rgba(80, 88, 82, 0.12)", glassHighlight: "rgba(255, 255, 255, 0.97)", shadow: "#776E63" } },
 };
 
 const PREFERENCES_KEY = "omniwave:ui-preferences:v2";
@@ -121,7 +122,7 @@ const isFavoriteCardStyle = (value: unknown): value is FavoriteCardStyle => valu
 const isFavoriteCardColor = (value: unknown): value is FavoriteCardColor => value === "teal" || value === "violet" || value === "rose";
 const sanitizeFavoriteCardPreferences = (value: unknown): FavoriteCardPreferences => typeof value === "object" && value !== null && isFavoriteCardStyle((value as Record<string, unknown>).style) && isFavoriteCardColor((value as Record<string, unknown>).color) ? { style: (value as Record<string, FavoriteCardStyle>).style, color: (value as Record<string, FavoriteCardColor>).color } : DEFAULT_FAVORITE_CARD_PREFERENCES;
 const HIGH_CONTRAST_ACCENTS: Record<HighContrastAccent, { dark: string; light: string; glow: string }> = { teal: { dark: "#39F2D0", light: "#005C43", glow: "#174B43" }, violet: { dark: "#D1C4FF", light: "#40258B", glow: "#3C2C6E" }, amber: { dark: "#FFE58C", light: "#6A4700", glow: "#5E4716" } };
-const withHighContrast = (baseTheme: AppTheme, accent: HighContrastAccent): AppTheme => { const accentColors = HIGH_CONTRAST_ACCENTS[accent]; const primary = baseTheme.isDark ? accentColors.dark : accentColors.light; return { ...baseTheme, colors: baseTheme.isDark ? { ...baseTheme.colors, background: "#000000", surface: "#101010", surfaceMuted: "#1B1B1B", text: "#FFFFFF", muted: "#F2F2F2", border: "#FFFFFF", primary, secondary: "#D1C4FF", accent: "#FFC0D4", glow: accentColors.glow, onPrimary: "#000000" } : { ...baseTheme.colors, background: "#FFFFFF", surface: "#FFFFFF", surfaceMuted: "#F4F4F4", text: "#000000", muted: "#1E1E1E", border: "#111111", primary, secondary: "#40258B", accent: "#9B0040", glow: accentColors.glow, onPrimary: "#FFFFFF" } }; };
+const withHighContrast = (baseTheme: AppTheme, accent: HighContrastAccent): AppTheme => { const accentColors = HIGH_CONTRAST_ACCENTS[accent]; const primary = baseTheme.isDark ? accentColors.dark : accentColors.light; return { ...baseTheme, colors: baseTheme.isDark ? { ...baseTheme.colors, background: "#000000", surface: "#101010", surfaceMuted: "#1B1B1B", text: "#FFFFFF", muted: "#F2F2F2", border: "#FFFFFF", primary, secondary: "#D1C4FF", accent: "#FFC0D4", glow: accentColors.glow, onPrimary: "#000000", glass: "#101010", glassStrong: "#171717", glassInset: "#000000", glassOverlay: "#1B1B1B", glassBorder: "#FFFFFF", glassHighlight: "#FFFFFF", shadow: "#000000" } : { ...baseTheme.colors, background: "#FFFFFF", surface: "#FFFFFF", surfaceMuted: "#F4F4F4", text: "#000000", muted: "#1E1E1E", border: "#111111", primary, secondary: "#40258B", accent: "#9B0040", glow: accentColors.glow, onPrimary: "#FFFFFF", glass: "#FFFFFF", glassStrong: "#FFFFFF", glassInset: "#F4F4F4", glassOverlay: "#FFFFFF", glassBorder: "#111111", glassHighlight: "#FFFFFF", shadow: "#111111" } }; };
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [themeId, setThemeIdState] = useState<AppThemeId>(getSystemThemeId);
@@ -176,7 +177,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
         setFavoriteCardPreferencesState(restoredCard);
         setIsFavoriteCardCustomized(isFavoriteCardStyle((stored.favoriteCard as Record<string, unknown> | undefined)?.style) && isFavoriteCardColor((stored.favoriteCard as Record<string, unknown> | undefined)?.color));
         setOnboardingSeen(typeof stored.onboardingSeen === "boolean" ? stored.onboardingSeen : true);
-      } catch { /* Ignore malformed local preferences safely. */ }
+      } catch { reportLocalDiagnostic("theme_preferences_hydration_failed"); }
     }).finally(() => { if (active) setReady(true); });
     return () => { active = false; };
   }, []);
@@ -202,7 +203,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (!ready) return;
     const saved = { locale, themeId, quickAccessOrder, hapticFeedbackEnabled, interfaceDensity, textScale, fontWeight: fontWeightPreference, lineSpacing, readingFont, highContrast, highContrastAccent, followSystemAppearance, appearanceShortcutEnabled, appearanceShortcutPosition, ...(isFavoriteCardCustomized ? { favoriteCard: favoriteCardPreferences } : {}), ...(onboardingSeen ? { onboardingSeen: true } : {}), ...(quickAccessHintSeen ? { quickAccessHintSeen: true } : {}) };
-    void AsyncStorage.setItem(PREFERENCES_KEY, JSON.stringify(saved)).catch(() => undefined);
+    void AsyncStorage.setItem(PREFERENCES_KEY, JSON.stringify(saved)).catch(() => reportLocalDiagnostic("theme_preferences_write_failed"));
   }, [appearanceShortcutEnabled, appearanceShortcutPosition, favoriteCardPreferences, followSystemAppearance, fontWeightPreference, hapticFeedbackEnabled, highContrast, highContrastAccent, interfaceDensity, isFavoriteCardCustomized, lineSpacing, locale, onboardingSeen, quickAccessHintSeen, quickAccessOrder, readingFont, ready, textScale, themeId]);
 
   const setThemeId = useCallback((nextThemeId: AppThemeId) => { if (isThemeId(nextThemeId)) { setFollowSystemAppearanceState(false); setThemeIdState(nextThemeId); } }, []);
@@ -229,7 +230,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const completeOnboarding = useCallback(() => setOnboardingSeen(true), []);
   const skipOnboarding = useCallback(() => setOnboardingSeen(true), []);
   const resetOnboarding = useCallback(() => setOnboardingSeen(false), []);
-  const t = useCallback((key: TranslationKey) => TRANSLATIONS[locale][key] as string, [locale]);
+  const t = useCallback((key: TranslationKey) => translate(locale, key), [locale]);
 
   const themeVariables = useMemo(() => vars({
     "color-primary": theme.colors.primary, "color-background": theme.colors.background, "color-surface": theme.colors.surface, "color-foreground": theme.colors.text, "color-muted": theme.colors.muted, "color-border": theme.colors.border, "color-success": theme.colors.primary, "color-warning": theme.colors.secondary, "color-error": theme.colors.accent,

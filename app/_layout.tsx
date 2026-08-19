@@ -1,6 +1,6 @@
 import "@/global.css";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { Stack } from "expo-router";
+import { Stack, type ErrorBoundaryProps } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useFonts } from "expo-font";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -12,6 +12,7 @@ import { ThemeProvider } from "@/lib/theme-provider";
 import { VideoProvider } from "@/lib/omniwave/video-store";
 import { OnboardingCoach } from "@/components/omniwave/onboarding-coach";
 import { AppearanceTransition } from "@/components/omniwave/appearance-transition";
+import { AppRecoveryScreen } from "@/components/omniwave/app-recovery-screen";
 import {
   SafeAreaFrameContext,
   SafeAreaInsetsContext,
@@ -30,6 +31,11 @@ export const unstable_settings = {
   anchor: "(tabs)",
 };
 
+/** Keep a route rendering failure from becoming an unrecoverable blank screen. */
+export function ErrorBoundary({ retry }: ErrorBoundaryProps) {
+  return <AppRecoveryScreen onRetry={retry} description="حدثت مشكلة غير متوقعة أثناء فتح الشاشة. يمكنك المحاولة مجددًا أو العودة إلى الرئيسية." />;
+}
+
 export default function RootLayout() {
   useFonts({ "OpenDyslexic-Regular": require("@/assets/fonts/OpenDyslexic-Regular.ttf"), "OpenDyslexic-Bold": require("@/assets/fonts/OpenDyslexic-Bold.ttf") });
   const initialInsets = initialWindowMetrics?.insets ?? DEFAULT_WEB_INSETS;
@@ -40,7 +46,11 @@ export default function RootLayout() {
 
   // Initialize Manus runtime for cookie injection from parent container
   useEffect(() => {
-    initManusRuntime();
+    try {
+      initManusRuntime();
+    } catch {
+      // Runtime integration is optional for native playback and must not block the UI.
+    }
   }, []);
 
   const handleSafeAreaUpdate = useCallback((metrics: Metrics) => {
@@ -50,8 +60,13 @@ export default function RootLayout() {
 
   useEffect(() => {
     if (Platform.OS !== "web") return;
-    const unsubscribe = subscribeSafeAreaInsets(handleSafeAreaUpdate);
-    return () => unsubscribe();
+    try {
+      const unsubscribe = subscribeSafeAreaInsets(handleSafeAreaUpdate);
+      return () => unsubscribe();
+    } catch {
+      // Keep the default safe-area metrics if the preview bridge is unavailable.
+      return undefined;
+    }
   }, [handleSafeAreaUpdate]);
 
   // Create clients once and reuse them

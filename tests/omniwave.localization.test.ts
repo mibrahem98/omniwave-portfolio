@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { LOCALE_META, SUPPORTED_LOCALES, TRANSLATIONS } from "../lib/localization";
+import { LOCALE_META, SUPPORTED_LOCALES, TRANSLATIONS, translate, type TranslationKey } from "../lib/localization";
 
 describe("OmniWave localization contract", () => {
   it("ships four complete first-class locales", () => {
@@ -19,5 +19,17 @@ describe("OmniWave localization contract", () => {
     expect(LOCALE_META.en.direction).toBe("ltr");
     expect(LOCALE_META.fr.direction).toBe("ltr");
     expect(LOCALE_META.es.direction).toBe("ltr");
+  });
+
+  it("falls back to English when a runtime translation value is unavailable", () => {
+    const key: TranslationKey = "home";
+    const frenchTable: { home?: string } = TRANSLATIONS.fr;
+    const original = frenchTable[key];
+    delete frenchTable[key];
+    try {
+      expect(translate("fr", key)).toBe(TRANSLATIONS.en[key]);
+    } finally {
+      frenchTable[key] = original;
+    }
   });
 });

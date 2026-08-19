@@ -56,7 +56,8 @@ const encodeState = (value: string) => {
   if (typeof globalThis.btoa === "function") {
     return globalThis.btoa(value);
   }
-  const BufferImpl = (globalThis as Record<string, any>).Buffer;
+  type BufferEncoder = { from(input: string, encoding: "utf-8"): { toString(encoding: "base64"): string } };
+  const BufferImpl = (globalThis as typeof globalThis & { Buffer?: BufferEncoder }).Buffer;
   if (BufferImpl) {
     return BufferImpl.from(value, "utf-8").toString("base64");
   }

@@ -125,6 +125,22 @@ const es: typeof ar = {
 export const TRANSLATIONS: Record<AppLocale, typeof ar> = { ar, en, fr, es };
 export type TranslationKey = keyof typeof ar;
 
+const FALLBACK_LOCALE: AppLocale = "en";
+
+/**
+ * Resolve a UI label defensively. Translation tables are checked at compile time,
+ * but this fallback keeps a corrupted or partially loaded runtime table from
+ * rendering an empty control label.
+ */
+export function translate(locale: AppLocale, key: TranslationKey): string {
+  const requested = TRANSLATIONS[locale][key];
+  if (typeof requested === "string") return requested;
+  const fallback = TRANSLATIONS[FALLBACK_LOCALE][key];
+  if (typeof fallback === "string") return fallback;
+  const defaultLocale = TRANSLATIONS.ar[key];
+  return typeof defaultLocale === "string" ? defaultLocale : `[${String(key)}]`;
+}
+
 export function isAppLocale(value: unknown): value is AppLocale {
   return typeof value === "string" && SUPPORTED_LOCALES.includes(value as AppLocale);
 }

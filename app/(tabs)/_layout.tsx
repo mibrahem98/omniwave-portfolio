@@ -14,7 +14,7 @@ type TabIconName = "house.fill" | "music.note.list" | "rectangle.stack.fill" | "
 
 function TabIcon({ name, color, focused, size }: { name: TabIconName; color: string; focused: boolean; size: number }) {
   const { theme } = useThemeContext();
-  const activeStyle = focused ? { backgroundColor: `${theme.colors.primary}${theme.isDark ? "32" : "1D"}`, borderColor: `${theme.colors.primary}${theme.isDark ? "72" : "52"}`, transform: [{ translateY: -1 }] } : undefined;
+  const activeStyle = focused ? { backgroundColor: `${theme.colors.primary}${theme.isDark ? "32" : "1D"}`, borderColor: `${theme.colors.primary}${theme.isDark ? "72" : "52"}`, shadowColor: theme.colors.primary, shadowOpacity: 0.18, shadowRadius: 8, shadowOffset: { width: 0, height: 3 }, transform: [{ translateY: -1 }] } : undefined;
   return <View style={[styles.iconShell, activeStyle]}><IconSymbol name={name} size={size} color={color} />{focused ? <View accessibilityElementsHidden importantForAccessibility="no-hide-descendants" style={[styles.activeIndicator, { backgroundColor: theme.colors.primary }]} /> : null}</View>;
 }
 
@@ -45,7 +45,7 @@ function AppearanceShortcut({ bottomOffset }: { bottomOffset: number }) {
   const nextScheme = colorScheme === "dark" ? "light" : "dark";
   const label = colorScheme === "dark" ? t("switchToLightMode") : t("switchToDarkMode");
   if (!appearanceShortcutEnabled) return null;
-  return <View pointerEvents="box-none" style={styles.accessoryLayer}><View {...panResponder.panHandlers} style={[styles.appearanceShortcutShell, { left: Math.max(edge, Math.min(maxX, baseX + dragOffset.x)), top: Math.max(edge, Math.min(maxY, baseY + dragOffset.y)) }]}><Pressable accessibilityRole="button" accessibilityLabel={t("appearanceShortcut")} accessibilityHint={label} accessibilityState={{ selected: colorScheme === "dark" }} onPress={() => setColorScheme(nextScheme)} style={({ pressed }) => [styles.appearanceShortcut, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border, shadowColor: theme.colors.primary }, pressed && styles.accessoryPressed]}><MaterialIcons name={colorScheme === "dark" ? "light-mode" : "dark-mode"} size={20} color={theme.colors.primary} /></Pressable></View></View>;
+  return <View pointerEvents="box-none" style={styles.accessoryLayer}><View {...panResponder.panHandlers} style={[styles.appearanceShortcutShell, { left: Math.max(edge, Math.min(maxX, baseX + dragOffset.x)), top: Math.max(edge, Math.min(maxY, baseY + dragOffset.y)) }]}><Pressable accessibilityRole="button" accessibilityLabel={t("appearanceShortcut")} accessibilityHint={label} accessibilityState={{ selected: colorScheme === "dark" }} onPress={() => setColorScheme(nextScheme)} style={({ pressed }) => [styles.appearanceShortcut, { backgroundColor: theme.colors.glassStrong, borderColor: theme.colors.glassBorder, shadowColor: theme.colors.primary }, pressed && styles.accessoryPressed]}><MaterialIcons name={colorScheme === "dark" ? "light-mode" : "dark-mode"} size={20} color={theme.colors.primary} /></Pressable></View></View>;
 }
 
 function TabChrome() {
@@ -64,11 +64,11 @@ function TabChrome() {
           tabBarButton: HapticTab,
           tabBarActiveTintColor: theme.colors.primary,
           tabBarInactiveTintColor: theme.colors.muted,
-          tabBarStyle: { display: isVideoPlayer ? "none" : "flex", height: (compact ? 66 : 74) + bottomPadding, paddingTop: compact ? 6 : 8, paddingBottom: bottomPadding, backgroundColor: theme.colors.surface, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: `${theme.colors.border}D9`, elevation: theme.isDark ? 0 : 5, shadowColor: theme.isDark ? "#000" : theme.colors.primary, shadowOpacity: theme.isDark ? 0.22 : 0.09, shadowRadius: 24, shadowOffset: { width: 0, height: -8 } },
+          tabBarStyle: { display: isVideoPlayer ? "none" : "flex", height: (compact ? 66 : 74) + bottomPadding, paddingTop: compact ? 6 : 8, paddingBottom: bottomPadding, backgroundColor: theme.colors.glassStrong, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: theme.colors.glassBorder, elevation: theme.isDark ? 0 : 5, shadowColor: theme.colors.shadow, shadowOpacity: theme.isDark ? 0.28 : 0.11, shadowRadius: 28, shadowOffset: { width: 0, height: -10 } },
           tabBarLabelStyle: { fontSize: compact ? 9 : 10, lineHeight: compact ? 12 : 13, fontWeight: "900", marginTop: compact ? 2 : 3, letterSpacing: 0.1 },
           tabBarItemStyle: { minHeight: compact ? 50 : 56, borderRadius: compact ? 15 : 18, marginHorizontal: 1, marginVertical: 1 },
           tabBarIconStyle: { marginTop: compact ? 0 : 1 },
-          tabBarActiveBackgroundColor: `${theme.colors.primary}${theme.isDark ? "20" : "16"}`,
+          tabBarActiveBackgroundColor: theme.colors.glassOverlay,
           tabBarHideOnKeyboard: true,
         }}
       >

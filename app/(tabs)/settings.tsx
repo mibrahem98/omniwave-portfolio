@@ -6,6 +6,7 @@ import { FlatList, Modal as NativeModal, Pressable, StyleSheet, Switch, Text, Vi
 import { AccessibilityFeedback } from "@/components/omniwave/accessibility-feedback";
 import { AccessibilityLibraryPreview } from "@/components/omniwave/accessibility-library-preview";
 import { AccessibilityPlayerPreview } from "@/components/omniwave/accessibility-player-preview";
+import { PrismBackdrop } from "@/components/omniwave/glass-card";
 import { ThemePreviewModal } from "@/components/omniwave/theme-preview-modal";
 import { ScreenContainer } from "@/components/screen-container";
 import { EQ_LABELS } from "@/lib/omniwave/data";
@@ -61,6 +62,7 @@ export default function SettingsScreen() {
 
   return (
     <ScreenContainer className="px-5">
+      <PrismBackdrop />
       <FlatList
         data={EFFECTS}
         keyExtractor={(item) => item.id}
@@ -75,7 +77,7 @@ export default function SettingsScreen() {
               <Text style={[styles.settingsOverview, { color: theme.colors.muted, textAlign: align }]}>{t("settingsOverview")}</Text>
             </View>
 
-            <View style={[styles.settingsSnapshot, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border, flexDirection: direction }]}>
+            <View style={[styles.settingsSnapshot, { backgroundColor: theme.colors.glassStrong, borderColor: theme.colors.glassBorder, shadowColor: theme.colors.shadow, flexDirection: direction }]}>
               <View style={styles.snapshotItem}><View style={[styles.snapshotIcon, { backgroundColor: `${theme.colors.primary}18` }]}><MaterialIcons name="palette" size={17} color={theme.colors.primary} /></View><Text numberOfLines={1} style={[styles.snapshotValue, { color: theme.colors.text }]}>{selectedThemeName}</Text><Text style={[styles.snapshotLabel, { color: theme.colors.muted }]}>{t("theme")}</Text></View>
               <View style={[styles.snapshotDivider, { backgroundColor: theme.colors.border }]} />
               <View style={styles.snapshotItem}><View style={[styles.snapshotIcon, { backgroundColor: `${theme.colors.secondary}18` }]}><MaterialIcons name="queue-music" size={17} color={theme.colors.secondary} /></View><Text numberOfLines={1} style={[styles.snapshotValue, { color: theme.colors.text }]}>{snapshot.queueLength}</Text><Text style={[styles.snapshotLabel, { color: theme.colors.muted }]}>{t("queue")}</Text></View>
@@ -83,7 +85,7 @@ export default function SettingsScreen() {
               <View style={styles.snapshotItem}><View style={[styles.snapshotIcon, { backgroundColor: `${theme.colors.accent}18` }]}><MaterialIcons name="shield" size={17} color={theme.colors.accent} /></View><Text numberOfLines={1} style={[styles.snapshotValue, { color: theme.colors.text }]}>{t("localOnly")}</Text><Text style={[styles.snapshotLabel, { color: theme.colors.muted }]}>{t("dataAndPrivacy")}</Text></View>
             </View>
 
-            <Pressable accessibilityRole="button" accessibilityLabel={t("profile")} accessibilityHint={t("editProfile")} onPress={() => router.push("/(tabs)/profile" as never)} style={({ pressed }) => [styles.profileCard, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border }, pressed && styles.pressed]}>
+            <Pressable accessibilityRole="button" accessibilityLabel={t("profile")} accessibilityHint={t("editProfile")} onPress={() => router.push("/(tabs)/profile" as never)} style={({ pressed }) => [styles.profileCard, { backgroundColor: theme.colors.glassStrong, borderColor: theme.colors.glassBorder, shadowColor: theme.colors.shadow }, pressed && styles.pressed]}>
               <View style={[styles.profileHeader, { flexDirection: direction }]}>
                 <View style={[styles.profileMark, { backgroundColor: theme.colors.primary }]}>
                   <MaterialIcons name="headphones" size={26} color={theme.colors.onPrimary} />
@@ -101,13 +103,13 @@ export default function SettingsScreen() {
             </Pressable>
 
             <Text style={[styles.groupLabel, { color: theme.colors.muted, textAlign: align }]}>{t("mediaAndLibrary")}</Text>
-            <Pressable accessibilityRole="button" accessibilityLabel={t("manageListening")} accessibilityHint={t("queueStatus")} onPress={() => router.push("/(tabs)/tools" as never)} style={({ pressed }) => [styles.sessionRoute, { backgroundColor: theme.colors.surfaceMuted, borderColor: theme.colors.border, flexDirection: direction }, pressed && styles.pressed]}>
+            <Pressable accessibilityRole="button" accessibilityLabel={t("manageListening")} accessibilityHint={t("queueStatus")} onPress={() => router.push("/(tabs)/tools" as never)} style={({ pressed }) => [styles.sessionRoute, { backgroundColor: theme.colors.glass, borderColor: theme.colors.glassBorder, shadowColor: theme.colors.shadow, flexDirection: direction }, pressed && styles.pressed]}>
               <View style={[styles.routeIcon, { backgroundColor: `${theme.colors.primary}1A` }]}><MaterialIcons name="queue-music" size={21} color={theme.colors.primary} /></View>
               <View style={styles.routeCopy}><Text style={[styles.routeTitle, { color: theme.colors.text, textAlign: align }]}>{t("manageListening")}</Text><Text style={[styles.routeText, { color: theme.colors.muted, textAlign: align }]}>{snapshot.queueLength ? `${snapshot.queueLength} ${t("queueStatus")}` : t("queueStatusEmpty")}{snapshot.sleepTimerEndsAt ? ` · ${t("sleepTimer")}` : ""}</Text></View>
               <MaterialIcons name={isRTL ? "chevron-left" : "chevron-right"} size={23} color={theme.colors.muted} />
             </Pressable>
 
-            <Pressable accessibilityRole="button" accessibilityLabel={t("videoLibrary")} accessibilityHint={t("videoLocalOnly")} onPress={() => router.push("/(tabs)/videos" as never)} style={({ pressed }) => [styles.sessionRoute, { backgroundColor: theme.colors.surfaceMuted, borderColor: theme.colors.border, flexDirection: direction, marginTop: 8 }, pressed && styles.pressed]}>
+            <Pressable accessibilityRole="button" accessibilityLabel={t("videoLibrary")} accessibilityHint={t("videoLocalOnly")} onPress={() => router.push("/(tabs)/videos" as never)} style={({ pressed }) => [styles.sessionRoute, { backgroundColor: theme.colors.glass, borderColor: theme.colors.glassBorder, shadowColor: theme.colors.shadow, flexDirection: direction, marginTop: 8 }, pressed && styles.pressed]}>
               <View style={[styles.routeIcon, { backgroundColor: `${theme.colors.accent}1A` }]}><MaterialIcons name="video-library" size={21} color={theme.colors.accent} /></View>
               <View style={styles.routeCopy}><Text style={[styles.routeTitle, { color: theme.colors.text, textAlign: align }]}>{t("videoLibrary")}</Text><Text style={[styles.routeText, { color: theme.colors.muted, textAlign: align }]}>{t("videoLocalOnly")}</Text></View>
               <MaterialIcons name={isRTL ? "chevron-left" : "chevron-right"} size={23} color={theme.colors.muted} />
@@ -130,7 +132,7 @@ export default function SettingsScreen() {
               </View>
             </View>
 
-            <AccessibilityFeedback pulseKey={accessibilityPulse}><View style={[styles.themePickerCard, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border }]}>
+            <AccessibilityFeedback pulseKey={accessibilityPulse}><View style={[styles.themePickerCard, { backgroundColor: theme.colors.glassStrong, borderColor: theme.colors.glassBorder, shadowColor: theme.colors.shadow }]}>
               <View style={[styles.pickerTitleRow, { flexDirection: direction }]}>
                 <View style={[styles.settingIcon, { backgroundColor: `${theme.colors.secondary}18` }]}><MaterialIcons name="palette" size={20} color={theme.colors.secondary} /></View>
                 <View style={styles.pickerCopy}>
@@ -144,7 +146,7 @@ export default function SettingsScreen() {
                   const option = APP_THEMES[id];
                   const selected = id === themeId;
                   const description = themeDescriptions[id] ?? t("themePaletteHint");
-                  return <Pressable key={id} accessibilityRole="radio" accessibilityLabel={`${themeLabels[id]}. ${description}`} accessibilityHint={t("themePreviewHint")} accessibilityState={{ selected }} onPress={() => setThemePreviewId(id)} style={({ pressed }) => [styles.themeOption, interfaceDensity === "compact" && styles.themeOptionCompact, { borderColor: selected ? theme.colors.primary : theme.colors.border, backgroundColor: option.colors.surface }, selected && { borderWidth: 2, shadowColor: option.colors.primary, shadowOpacity: theme.isDark ? 0.2 : 0.14, shadowRadius: 8, shadowOffset: { width: 0, height: 3 }, elevation: 2 }, pressed && styles.pressed]}>
+                  return <Pressable key={id} accessibilityRole="radio" accessibilityLabel={`${themeLabels[id]}. ${description}`} accessibilityHint={t("themePreviewHint")} accessibilityState={{ selected }} onPress={() => setThemePreviewId(id)} style={({ pressed }) => [styles.themeOption, interfaceDensity === "compact" && styles.themeOptionCompact, { borderColor: selected ? theme.colors.primary : option.colors.glassBorder, backgroundColor: option.colors.glassStrong, shadowColor: option.colors.shadow }, selected && { borderWidth: 2, shadowColor: option.colors.primary, shadowOpacity: theme.isDark ? 0.2 : 0.14, shadowRadius: 8, shadowOffset: { width: 0, height: 3 }, elevation: 2 }, pressed && styles.pressed]}>
                     <View style={[styles.themeSwatch, { backgroundColor: option.colors.background }]}><View style={[styles.themeDot, { backgroundColor: option.colors.primary }]} /><View style={[styles.themeLine, { backgroundColor: option.colors.text }]} /><View style={[styles.themeAccentLine, { backgroundColor: option.colors.secondary }]} />{selected ? <View style={[styles.themeCheck, { backgroundColor: option.colors.primary }]}><MaterialIcons name="check" size={11} color={option.colors.onPrimary} /></View> : null}</View>
                     <Text numberOfLines={1} style={[styles.themeName, { color: selected ? theme.colors.primary : option.colors.text }]}>{themeLabels[id]}</Text>
                     <Text numberOfLines={2} style={[styles.themeDescription, { color: selected ? option.colors.primary : option.colors.muted }]}>{description}</Text>
@@ -258,13 +260,13 @@ const styles = StyleSheet.create({
   eyebrow: { fontSize: 10, lineHeight: 15, fontWeight: "900", letterSpacing: 1.9 },
   heading: { fontSize: 30, lineHeight: 38, fontWeight: "900" },
   settingsOverview: { fontSize: 11, lineHeight: 17, marginTop: 3, maxWidth: 340 },
-  settingsSnapshot: { minHeight: 91, marginBottom: 17, paddingHorizontal: 8, borderRadius: 22, borderWidth: 1, alignItems: "center", justifyContent: "space-around" },
+  settingsSnapshot: { minHeight: 91, marginBottom: 17, paddingHorizontal: 8, borderRadius: 24, borderWidth: 1, alignItems: "center", justifyContent: "space-around", shadowOpacity: 0.14, shadowRadius: 16, shadowOffset: { width: 0, height: 7 }, elevation: 2 },
   snapshotItem: { flex: 1, alignItems: "center", justifyContent: "center", paddingHorizontal: 4, gap: 3 },
   snapshotIcon: { width: 30, height: 30, borderRadius: 10, alignItems: "center", justifyContent: "center" },
   snapshotValue: { maxWidth: "100%", fontSize: 10, lineHeight: 14, fontWeight: "900", textAlign: "center" },
   snapshotLabel: { fontSize: 8, lineHeight: 11, fontWeight: "800", textAlign: "center" },
   snapshotDivider: { width: StyleSheet.hairlineWidth, height: 44 },
-  profileCard: { padding: 17, borderRadius: 23, borderWidth: 1, marginBottom: 25 },
+  profileCard: { padding: 17, borderRadius: 25, borderWidth: 1, marginBottom: 25, shadowOpacity: 0.14, shadowRadius: 16, shadowOffset: { width: 0, height: 7 }, elevation: 2 },
   profileHeader: { alignItems: "center", gap: 13 },
   profileMark: { width: 52, height: 52, borderRadius: 18, alignItems: "center", justifyContent: "center" },
   profileCopy: { flex: 1 },
@@ -274,9 +276,9 @@ const styles = StyleSheet.create({
   profileLine: { alignItems: "center", justifyContent: "flex-start", gap: 7, marginTop: 16, paddingTop: 13, borderTopWidth: StyleSheet.hairlineWidth },
   profileDot: { width: 7, height: 7, borderRadius: 4 },
   profileStatus: { fontSize: 11, lineHeight: 15, fontWeight: "700" },
-  sessionRoute: { minHeight: 68, borderRadius: 20, borderWidth: 1, paddingHorizontal: 13, alignItems: "center", gap: 11, marginBottom: 22 }, routeIcon: { width: 42, height: 42, borderRadius: 14, alignItems: "center", justifyContent: "center" }, routeCopy: { flex: 1 }, routeTitle: { fontSize: 13, lineHeight: 19, fontWeight: "900" }, routeText: { fontSize: 11, lineHeight: 16, marginTop: 1 },
+  sessionRoute: { minHeight: 68, borderRadius: 22, borderWidth: 1, paddingHorizontal: 13, alignItems: "center", gap: 11, marginBottom: 22, shadowOpacity: 0.09, shadowRadius: 12, shadowOffset: { width: 0, height: 5 }, elevation: 1 }, routeIcon: { width: 42, height: 42, borderRadius: 14, alignItems: "center", justifyContent: "center" }, routeCopy: { flex: 1 }, routeTitle: { fontSize: 13, lineHeight: 19, fontWeight: "900" }, routeText: { fontSize: 11, lineHeight: 16, marginTop: 1 },
   groupLabel: { fontSize: 11, lineHeight: 16, fontWeight: "900", letterSpacing: 1.2, marginBottom: 8 },
-  pickerCard: { padding: 14, borderRadius: 21, borderWidth: 1, marginBottom: 12 }, themePickerCard: { padding: 14, borderRadius: 21, borderWidth: 1, marginBottom: 12 },
+  pickerCard: { padding: 14, borderRadius: 23, borderWidth: 1, marginBottom: 12, shadowOpacity: 0.1, shadowRadius: 13, shadowOffset: { width: 0, height: 6 }, elevation: 1 }, themePickerCard: { padding: 14, borderRadius: 23, borderWidth: 1, marginBottom: 12, shadowOpacity: 0.1, shadowRadius: 13, shadowOffset: { width: 0, height: 6 }, elevation: 1 },
   pickerTitleRow: { alignItems: "center", gap: 12 },
   pickerCopy: { flex: 1 },
   choiceRow: { flexWrap: "wrap", gap: 7, marginTop: 14 },

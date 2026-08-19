@@ -14,7 +14,7 @@ export type VideoSummaryLength = "short" | "medium" | "detailed";
 export type VideoPreferences = { playbackRate: VideoPlaybackRate; loopEnabled: boolean; muted: boolean; captionsEnabled: boolean; captionTextSize: VideoCaptionTextSize; captionTextColor: VideoCaptionTextColor; captionPosition: VideoCaptionPosition; captionBackground: VideoCaptionBackground; summaryLength: VideoSummaryLength };
 export type VideoSubtitle = { localUri: string; fileName: string; addedAt: number };
 export type VideoSummary = { text: string; createdAt: number };
-export type VideoItem = { id: string; title: string; localUri: string; thumbnailUri?: string; subtitle?: VideoSubtitle; summary?: VideoSummary; durationSeconds: number; sizeBytes: number; mimeType: string; addedAt: number; lastPositionSeconds: number; isFavorite: boolean };
+export type VideoItem = { id: string; title: string; localUri: string; thumbnailUri?: string; subtitle?: VideoSubtitle; summary?: VideoSummary; durationSeconds: number; sizeBytes: number; mimeType: string; addedAt: number; lastPositionSeconds: number; isFavorite: boolean; sourceFingerprint?: string };
 export type VideoPlaylist = { id: string; name: string; videoIds: string[]; createdAt: number };
 export type VideoPlaybackSnapshot = { activeVideoId: string | null; isPlaying: boolean; positionSeconds: number; durationSeconds: number; isBuffering: boolean; playbackRate: VideoPlaybackRate; loopEnabled: boolean; muted: boolean; captionsEnabled: boolean };
 
@@ -29,6 +29,7 @@ export type Track = {
   accent: string;
   isFavorite: boolean;
   isImported?: boolean;
+  sourceFingerprint?: string;
   classification?: TrackClassification;
   suggestedClassification?: TrackClassification;
   classificationStatus?: ClassificationStatus;

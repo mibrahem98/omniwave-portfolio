@@ -16,7 +16,7 @@ concurrency:
 
 jobs:
   static-quality:
-    name: TypeScript and lint
+    name: Static checks, Expo config, and tests
     runs-on: ubuntu-latest
     steps:
       - name: Check out source
@@ -38,3 +38,20 @@ jobs:
         run: pnpm check
       - name: Lint
         run: pnpm lint
+      - name: Validate Expo configuration
+        run: pnpm exec expo config --type public
+      - name: Tests
+        run: pnpm test
+      - name: Audit production dependencies
+        run: pnpm audit:dependencies:report
+        continue-on-error: true
+      - name: Upload dependency audit evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: production-dependency-audit
+          path: artifacts/production-dependency-audit.*
+          if-no-files-found: error
+      - name: Fail when dependency audit fails
+        if: always()
+        run: test "$(cat artifacts/production-dependency-audit.status)" = "passed"

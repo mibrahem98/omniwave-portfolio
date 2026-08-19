@@ -3,6 +3,7 @@ import { Platform } from "react-native";
 
 import * as Api from "@/lib/_core/api";
 import * as Auth from "@/lib/_core/auth";
+import { reportLocalDiagnostic } from "@/lib/_core/local-diagnostics";
 
 type UseAuthOptions = { autoFetch?: boolean };
 
@@ -42,7 +43,7 @@ export function useAuth(options?: UseAuthOptions) {
   }, []);
 
   const logout = useCallback(async () => {
-    try { await Api.logout(); } catch { /* Local sign-out must still complete. */ } finally {
+    try { await Api.logout(); } catch { reportLocalDiagnostic("auth_logout_remote_failed"); } finally {
       await Auth.removeSessionToken();
       await Auth.clearUserInfo();
       setUser(null);

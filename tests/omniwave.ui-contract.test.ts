@@ -545,4 +545,20 @@ describe("OmniWave navigation and settings contract", () => {
     expect(settings).toContain("EQ_PRESETS");
     for (const key of ["videoPlaylists", "createVideoPlaylist", "addToVideoPlaylist", "videoBrightness", "videoVolume", "equalizerPresetFlat", "equalizerPresetWarm", "equalizerPresetVocal", "equalizerPresetNight"]) expect(localization).toContain(key);
   });
+
+  it("keeps route recovery and render-failure recovery isolated from player and theme state", () => {
+    const rootLayout = read("app/_layout.tsx");
+    const recovery = read("components/omniwave/app-recovery-screen.tsx");
+    const notFound = read("app/+not-found.tsx");
+    const navigation = read("lib/omniwave/navigation.ts");
+    expect(rootLayout).toContain("export function ErrorBoundary");
+    expect(rootLayout).toContain("initManusRuntime();");
+    expect(rootLayout).toContain("subscribeSafeAreaInsets(handleSafeAreaUpdate)");
+    expect(recovery).toContain("APP_ROUTES.home");
+    expect(recovery).toContain('accessibilityRole="alert"');
+    expect(recovery).not.toContain("useThemeContext");
+    expect(notFound).toContain("AppRecoveryScreen");
+    expect(navigation).toContain("toSafeAppRoute");
+    expect(navigation).toContain('home: "/" as Href');
+  });
 });

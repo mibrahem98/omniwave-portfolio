@@ -2,15 +2,33 @@ import { Platform } from "react-native";
 
 import { getApiBaseUrl } from "@/constants/oauth";
 import * as Auth from "./auth";
+import { safeEndpoint } from "./api-endpoint";
+import { OperationAbortedError, OperationTimeoutError, withRetry, withTimeout, type TimedOperationOptions } from "./async";
 
-function safeEndpoint(endpoint: string) {
-  if (!endpoint.startsWith("/") || endpoint.includes("://") || /[\u0000-\u001F]/.test(endpoint)) throw new Error("Invalid API endpoint");
-  return endpoint;
+class ApiResponseError extends Error {
+  constructor(readonly status: number) {
+    super(`API request failed (${status})`);
+    this.name = "ApiResponseError";
+  }
 }
 
-export async function apiCall<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
+function isSafeRetryMethod(method: string | undefined): boolean {
+  const normalized = (method ?? "GET").toUpperCase();
+  return normalized === "GET" || normalized === "HEAD" || normalized === "OPTIONS";
+}
+
+function isTransientApiFailure(error: unknown): boolean {
+  if (error instanceof OperationAbortedError) return false;
+  if (error instanceof ApiResponseError) return error.status === 408 || error.status === 429 || error.status >= 500;
+  return true;
+}
+
+export type ApiRequestOptions = RequestInit & Pick<TimedOperationOptions, "timeoutMs">;
+
+export async function apiCall<T>(endpoint: string, options: ApiRequestOptions = {}): Promise<T> {
   const relativeEndpoint = safeEndpoint(endpoint);
-  const headers: Record<string, string> = { "Content-Type": "application/json", ...((options.headers as Record<string, string>) || {}) };
+  const { timeoutMs, signal: callerSignal, headers: requestHeaders, ...requestOptions } = options;
+  const headers: Record<string, string> = { "Content-Type": "application/json", ...((requestHeaders as Record<string, string>) || {}) };
   if (Platform.OS !== "web") {
     const sessionToken = await Auth.getSessionToken();
     if (sessionToken) headers.Authorization = `Bearer ${sessionToken}`;
@@ -19,12 +37,26 @@ export async function apiCall<T>(endpoint: string, options: RequestInit = {}): P
   const baseUrl = getApiBaseUrl();
   const url = baseUrl ? `${baseUrl.replace(/\/$/, "")}${relativeEndpoint}` : relativeEndpoint;
   try {
-    const response = await fetch(url, { ...options, headers, credentials: "include" });
-    if (!response.ok) throw new Error(`API request failed (${response.status})`);
+    const response = await withRetry(
+      async () => {
+        const nextResponse = await withTimeout(
+          (signal) => fetch(url, { ...requestOptions, headers, credentials: "include", signal }),
+          { timeoutMs, signal: callerSignal ?? undefined },
+        );
+        if (!nextResponse.ok) throw new ApiResponseError(nextResponse.status);
+        return nextResponse;
+      },
+      {
+        signal: callerSignal ?? undefined,
+        maxAttempts: isSafeRetryMethod(requestOptions.method) ? 3 : 1,
+        shouldRetry: isTransientApiFailure,
+      },
+    );
     const contentType = response.headers.get("content-type") ?? "";
     return (contentType.includes("application/json") ? await response.json() : JSON.parse((await response.text()) || "{}")) as T;
   } catch (error) {
-    if (error instanceof Error && error.message.startsWith("API request failed")) throw error;
+    if (error instanceof OperationTimeoutError) throw new Error("API request timed out");
+    if (error instanceof ApiResponseError) throw new Error(error.message);
     throw new Error("API request could not be completed");
   }
 }
@@ -53,8 +85,8 @@ export async function establishSession(token: string): Promise<boolean> {
   const safeToken = token.trim();
   if (!safeToken) return false;
   try {
-    const response = await fetch(`${getApiBaseUrl().replace(/\/$/, "")}/api/auth/session`, { method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${safeToken}` }, credentials: "include" });
-    return response.ok;
+    await apiCall<Record<string, never>>("/api/auth/session", { method: "POST", headers: { Authorization: `Bearer ${safeToken}` } });
+    return true;
   } catch {
     return false;
   }

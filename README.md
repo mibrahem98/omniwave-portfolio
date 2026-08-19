@@ -101,6 +101,10 @@ GitHub Actions runs `pnpm check` and `pnpm lint` on every push to `main`, pull r
 
 Read [CONTRIBUTING.md](CONTRIBUTING.md) and [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) before opening an issue or pull request. Together, they cover respectful collaboration, local setup, quality gates, privacy boundaries, RTL and reduced-motion expectations, and the native-device validation boundary.
 
+Arabic-speaking contributors can follow the practical [كيف تساهم في OmniWave](docs/CONTRIBUTING_AR.md) guide for the same workflow, localized contribution examples, and privacy-safe reporting rules.
+
+The Arabic [final development and production-readiness document](docs/FINAL_DEVELOPMENT_READINESS_AR.md) maps the active Expo architecture to release gates and native-device validation limits.
+
 ## Native validation note
 
 The browser preview is useful for layout and copy review. Audio output routing, background playback, lock-screen controls, system sharing, and date-picker behavior should also be verified on iOS and Android devices or native builds.
@@ -108,6 +112,8 @@ The browser preview is useful for layout and copy review. Audio output routing, 
 ## Project case study
 
 Read the full Arabic project story in [**OmniWave — Design & Engineering Case Study**](docs/PROJECT_CASE_STUDY_AR.md) or download its [**professional PDF edition**](docs/OmniWave_Case_Study_AR.pdf). Together they document the product stages, local-first architecture, technologies, feature evolution, validation strategy, and the native-device boundaries that remain deliberately explicit. The lightweight [**Portfolio page**](docs/portfolio/index.html) presents these materials, while the [**native test matrix**](docs/NATIVE_TEST_MATRIX_IOS_ANDROID.md) records the iOS and Android scenarios awaiting real-device evidence.
+
+For a maintainable Arabic engineering guide covering the live source tree, data models, features, update notes, and quality workflow, start at [**docs/INDEX.md**](docs/INDEX.md).
 
 ## Repository guide
 

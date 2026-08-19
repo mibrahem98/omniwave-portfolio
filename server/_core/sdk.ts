@@ -24,6 +24,10 @@ export type SessionPayload = {
   name: string;
 };
 
+type UserInfoWithPlatforms = {
+  platforms?: unknown;
+};
+
 const EXCHANGE_TOKEN_PATH = `/webdev.v1.WebDevAuthPublicService/ExchangeToken`;
 const GET_USER_INFO_PATH = `/webdev.v1.WebDevAuthPublicService/GetUserInfo`;
 const GET_USER_INFO_WITH_JWT_PATH = `/webdev.v1.WebDevAuthPublicService/GetUserInfoWithJwt`;
@@ -97,6 +101,18 @@ class SDKServer {
     return first ? first.toLowerCase() : null;
   }
 
+  private withResolvedLoginMethod<T extends GetUserInfoResponse | GetUserInfoWithJwtResponse>(
+    data: T,
+  ): T & { loginMethod: string | null; platform: string | null } {
+    const platforms = (data as T & UserInfoWithPlatforms).platforms;
+    const loginMethod = this.deriveLoginMethod(platforms, data.platform ?? null);
+    return {
+      ...data,
+      platform: loginMethod,
+      loginMethod,
+    };
+  }
+
   /**
    * Exchange OAuth authorization code for access token
    * @example
@@ -115,15 +131,7 @@ class SDKServer {
     const data = await this.oauthService.getUserInfoByToken({
       accessToken,
     } as ExchangeTokenResponse);
-    const loginMethod = this.deriveLoginMethod(
-      (data as any)?.platforms,
-      (data as any)?.platform ?? data.platform ?? null,
-    );
-    return {
-      ...(data as any),
-      platform: loginMethod,
-      loginMethod,
-    } as GetUserInfoResponse;
+    return this.withResolvedLoginMethod(data);
   }
 
   private parseCookies(cookieHeader: string | undefined) {
@@ -219,16 +227,7 @@ class SDKServer {
       GET_USER_INFO_WITH_JWT_PATH,
       payload,
     );
-
-    const loginMethod = this.deriveLoginMethod(
-      (data as any)?.platforms,
-      (data as any)?.platform ?? data.platform ?? null,
-    );
-    return {
-      ...(data as any),
-      platform: loginMethod,
-      loginMethod,
-    } as GetUserInfoWithJwtResponse;
+    return this.withResolvedLoginMethod(data);
   }
 
   async authenticateRequest(req: Request): Promise<AuthenticatedUser> {
