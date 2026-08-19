@@ -97,7 +97,7 @@ pnpm lint
 
 ## Continuous quality
 
-GitHub Actions runs two independent, read-only checks on every push to `main`, every pull request targeting `main`, and manual dispatch. The application-quality job runs TypeScript, ESLint, Expo public-configuration validation, and Vitest. The dependency-audit job runs the production-only audit, uploads its JSON/Markdown/status evidence for 14 days, and fails the run when the audit reports a high-severity production dependency finding. Neither job needs repository secrets.
+GitHub Actions runs two independent, read-only checks on every push to `main`, every pull request targeting `main`, and manual dispatch. The application-quality job runs TypeScript, ESLint, Expo public-configuration validation, and Vitest. The dependency-audit job runs the production-only audit, uploads its JSON/Markdown/status evidence for 14 days, and fails the run when the audit reports a high-severity production dependency finding. Neither job needs repository secrets. See [the CI dependency-audit status](docs/CI_DEPENDENCY_AUDIT_STATUS.md) for the direct fixes applied and the remaining transitive-toolchain boundary.
 
 ## Contributing
 
