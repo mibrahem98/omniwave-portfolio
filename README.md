@@ -14,7 +14,9 @@ OmniWave is a portrait-first music-player experience designed around **local own
 
 This short, silent loop follows a real in-app route from library browsing to export configuration and appearance settings. It uses portfolio sample content only and communicates interface flow, not native playback or system-share behavior.
 
-## Screen gallery
+## Phone screen gallery
+
+The following are unmodified phone-width product captures from OmniWave using portfolio-only sample metadata. They show implemented interface states rather than visual mockups; they do not substitute for native-device verification of audio routing, background playback, lock-screen controls, or system sharing.
 
 ### Local library
 
@@ -95,7 +97,7 @@ pnpm lint
 
 ## Continuous quality
 
-GitHub Actions runs `pnpm check` and `pnpm lint` on every push to `main`, pull request targeting `main`, and manual workflow dispatch. The workflow has read-only repository permissions and requires no secrets.
+GitHub Actions runs two independent, read-only checks on every push to `main`, every pull request targeting `main`, and manual dispatch. The application-quality job runs TypeScript, ESLint, Expo public-configuration validation, and Vitest. The dependency-audit job runs the production-only audit, uploads its JSON/Markdown/status evidence for 14 days, and fails the run when the audit reports a high-severity production dependency finding. Neither job needs repository secrets.
 
 ## Contributing
 
